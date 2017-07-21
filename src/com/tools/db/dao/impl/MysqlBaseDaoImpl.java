@@ -4,10 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 import com.tools.db.dao.MysqlBaseDao;
+import com.tools.jdbc.JdbcOperate;
 
 
 public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
-
+	
+	protected JdbcOperate jdbcOperate;
+	
+	public abstract void initJdbcOperate();
+	
 	@Override
 	public int save(T object) {
 		// TODO Auto-generated method stub
