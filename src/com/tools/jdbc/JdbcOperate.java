@@ -802,4 +802,12 @@ public class JdbcOperate {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * 返回事物支持状态
+	 * 
+	 */
+	public boolean getTrancation(){
+		return isTrancation;
+	}
 }
