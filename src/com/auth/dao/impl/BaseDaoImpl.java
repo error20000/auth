@@ -9,6 +9,7 @@ public abstract class BaseDaoImpl<T> extends MysqlBaseDaoImpl<T> implements Base
 	
 	@Override
 	public void initJdbcOperate() {
+//		this.dataSource = JdbcOperateManager.getDataSource();
 		this.jdbcOperate = JdbcOperateManager.getJdbcOperate();
 	}
 

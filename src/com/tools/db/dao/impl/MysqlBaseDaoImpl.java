@@ -3,14 +3,20 @@ package com.tools.db.dao.impl;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import com.tools.db.dao.MysqlBaseDao;
 import com.tools.jdbc.JdbcOperate;
 
 
 public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	
-	protected JdbcOperate jdbcOperate;
+	protected DataSource dataSource = null;
+	protected JdbcOperate jdbcOperate = null;
 	
+	/**
+	 * 如果需要使用事物，要初始化dataSource
+	 */
 	public abstract void initJdbcOperate();
 	
 	@Override

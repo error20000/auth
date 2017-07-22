@@ -32,6 +32,7 @@ public interface BaseDao<T> {
 	public List<T> find(String sql, int start, int rows);
 	public List<?> find(String sql, Class<?> clss);
 	public List<?> find(String sql, Class<?> clss, int start, int rows);
+	
 
 	public long size();
 	public long size(String sql);

@@ -7,8 +7,8 @@ import com.tools.jdbc.c3p0.C3P0PropertiesConfig;
 
 public class JdbcOperateManager {
 	
-	private static JdbcOperate jdbcOperate;
-	private static DataSource dataSource;
+	private static DataSource dataSource = null;
+	private static JdbcOperate jdbcOperate = null;
 	
 	static{
 		String dbpath = "db.properties";
