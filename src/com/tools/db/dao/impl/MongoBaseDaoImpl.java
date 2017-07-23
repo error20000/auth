@@ -117,25 +117,25 @@ public abstract class MongoBaseDaoImpl<T> implements MongoBaseDao<T> {
 	}
 
 	@Override
-	public List<T> find(String sql) {
+	public List<T> find(Map<String, Object> queryCondition) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<T> find(String sql, int start, int rows) {
+	public List<T> find(Map<String, Object> queryCondition, int start, int rows) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<?> find(String sql, Class<?> clss) {
+	public List<T> find(String wsql) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<?> find(String sql, Class<?> clss, int start, int rows) {
+	public List<T> find(String wsql, int start, int rows) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -147,19 +147,13 @@ public abstract class MongoBaseDaoImpl<T> implements MongoBaseDao<T> {
 	}
 
 	@Override
-	public long size(String sql) {
+	public long size(Map<String, Object> queryCondition) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public List<T> query(String sql) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int update(String sql) {
+	public long size(String wsql) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

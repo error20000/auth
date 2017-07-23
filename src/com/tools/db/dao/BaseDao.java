@@ -28,13 +28,13 @@ public interface BaseDao<T> {
 	
 	public List<T> find();
 	public List<T> find(int start, int rows);
-	public List<T> find(String sql);
-	public List<T> find(String sql, int start, int rows);
-	public List<?> find(String sql, Class<?> clss);
-	public List<?> find(String sql, Class<?> clss, int start, int rows);
-	
+	public List<T> find(Map<String, Object> queryCondition);
+	public List<T> find(Map<String, Object> queryCondition, int start, int rows);
+	public List<T> find(String wsql);
+	public List<T> find(String wsql, int start, int rows);
 
 	public long size();
-	public long size(String sql);
+	public long size(Map<String, Object> queryCondition);
+	public long size(String wsql);
 	
 }
