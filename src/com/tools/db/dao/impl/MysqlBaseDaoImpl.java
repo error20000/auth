@@ -1,12 +1,19 @@
 package com.tools.db.dao.impl;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
 import com.tools.db.dao.MysqlBaseDao;
+import com.tools.jdbc.Column;
 import com.tools.jdbc.JdbcOperate;
+import com.tools.jdbc.PrimaryKey;
+import com.tools.jdbc.Table;
+import com.tools.utils.Tools;
 
 
 public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
@@ -21,14 +28,60 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	
 	@Override
 	public int save(T object) {
-		// TODO Auto-generated method stub
-		return 0;
+		String tableName = "";
+		if(object.getClass().isAnnotationPresent(Table.class)){
+			tableName = object.getClass().getAnnotation(Table.class).value();
+		}
+		return save(object, tableName);
 	}
 
 	@Override
 	public int save(T object, String tableName) {
-		// TODO Auto-generated method stub
-		return 0;
+		int res = 0;
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		String sql = "INSERT INTO `"+tableName+"` (SQLC) VALUES (SQLV)";
+		String sqlC = "";
+		String sqlV = "";
+		Field[] fields = Tools.getFields(object.getClass());
+		Method[] methods = Tools.getMethods(object.getClass());
+		//遍历属性，只有有get/set方法的属性，才加入insert.
+		for (Field f : fields) {
+			String fname = f.getName();
+			boolean get = false;
+			boolean set = false;
+			for (Method m : methods) {
+				if(("get"+fname).equalsIgnoreCase(m.getName())){
+					get = true;
+				}
+				if(("set"+fname).equalsIgnoreCase(m.getName())){
+					set = true;
+				}
+			}
+			if(get && set){
+				if(f.isAnnotationPresent(PrimaryKey.class)){
+					fname = f.getAnnotation(PrimaryKey.class).value();
+				}else if(f.isAnnotationPresent(Column.class)){
+					fname = f.getAnnotation(Column.class).value();
+				}
+				sqlC += ","+fname;
+				sqlV += ",:"+fname;
+			}
+		}
+		if(!Tools.isNullOrEmpty(sqlC)){
+			sql.replace("SQLC", sqlC.substring(1));
+		}
+		if(!Tools.isNullOrEmpty(sqlV)){
+			sql.replace("SQLV", sqlV.substring(1));
+		}
+		
+		try {
+			res = jdbcOperate.update(sql, object);
+		} catch (SQLException | ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
+		return res;
 	}
 
 	@Override
