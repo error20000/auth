@@ -17,9 +17,18 @@ import com.tools.utils.Tools;
 
 
 public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
-	
+
+	/**
+	 * dataSource 事务处理相关（非必须），默认：null
+	 */
 	protected DataSource dataSource = null;
+	/**
+	 * jdbc 主要方法（必须）初始化，默认：null
+	 */
 	protected JdbcOperate jdbcOperate = null;
+	/**
+	 * sql 调试打印（非必须），默认：false
+	 */
 	protected boolean debug = false;
 	
 	
