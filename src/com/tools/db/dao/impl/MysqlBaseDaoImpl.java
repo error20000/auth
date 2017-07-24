@@ -2,7 +2,10 @@ package com.tools.db.dao.impl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,8 +44,12 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	 */
 	public abstract void initJdbcOperate();
 	
+	//TODO save
 	@Override
 	public int save(T object) {
+		if(object == null){
+			return 0;
+		}
 		String tableName = "";
 		if(object.getClass().isAnnotationPresent(Table.class)){
 			tableName = object.getClass().getAnnotation(Table.class).value();
@@ -53,9 +60,73 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	@Override
 	public int save(T object, String tableName) {
 		int res = 0;
+		if(object == null){
+			return res;
+		}
 		if(Tools.isNullOrEmpty(tableName)){
 			return res;
 		}
+		String sql = parseInsert(object, tableName);
+		//DEBUG
+		if(debug){
+			System.out.println("save sql: " + sql);
+		}
+		try {
+			res = jdbcOperate.update(sql, object);
+			//DEBUG
+			if(debug){
+				System.out.println("save result: " + res);
+			}
+		} catch (SQLException | ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	@Override
+	public int batchSave(List<T> objects) {
+		if(objects == null || objects.size() == 0){
+			return 0;
+		}
+		T object = objects.get(0);
+		String tableName = "";
+		if(object.getClass().isAnnotationPresent(Table.class)){
+			tableName = object.getClass().getAnnotation(Table.class).value();
+		}
+		return batchSave(objects, tableName);
+	}
+
+	@Override
+	public int batchSave(List<T> objects, String tableName) {
+		int res = 0;
+		if(objects == null || objects.size() == 0){
+			return res;
+		}
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		T object = objects.get(0);
+		String sql = parseInsert(object, tableName);
+		//DEBUG
+		if(debug){
+			System.out.println("batch save sql: "+sql);
+		}
+		try {
+			int[] tmp = jdbcOperate.batchObject(sql, objects);
+			for (int i : tmp) {
+				res += i;
+			}
+			//DEBUG
+			if(debug){
+				System.out.println("batch save result: " + res);
+			}
+		} catch (SQLException | ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	private String parseInsert(T object, String tableName){
 		String sql = "INSERT INTO `"+tableName+"` (SQLC) VALUES (SQLV)";
 		String sqlC = "";
 		String sqlV = "";
@@ -75,12 +146,14 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 				}
 			}
 			if(get && set){
+				String value = "";
 				if(f.isAnnotationPresent(PrimaryKey.class)){
-					fname = f.getAnnotation(PrimaryKey.class).value();
+					value = f.getAnnotation(PrimaryKey.class).value();
 				}else if(f.isAnnotationPresent(Column.class)){
-					fname = f.getAnnotation(Column.class).value();
+					value = f.getAnnotation(PrimaryKey.class).value();
 				}
-				sqlC += ","+fname;
+				fname = Tools.isNullOrEmpty(value) ? fname : value;
+				sqlC += ",`"+fname+"`";
 				sqlV += ",:"+fname;
 			}
 		}
@@ -90,51 +163,205 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		if(!Tools.isNullOrEmpty(sqlV)){
 			sql = sql.replace("SQLV", sqlV.substring(1));
 		}
+		return sql;
+	}
+
+	//TODO modify
+	@Override
+	public int modify(T object) {
+		if(object == null){
+			return 0;
+		}
+		String tableName = "";
+		if(object.getClass().isAnnotationPresent(Table.class)){
+			tableName = object.getClass().getAnnotation(Table.class).value();
+		}
+		return modify(object, tableName);
+	}
+
+	@Override
+	public int modify(T object, String tableName) {
+		int res = 0;
+		if(object == null){
+			return res;
+		}
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		String sql = parseUpdate(object, tableName);
 		//DEBUG
 		if(debug){
-			System.out.println("save sql: "+sql);
+			System.out.println("modify sql: " + sql);
 		}
 		try {
 			res = jdbcOperate.update(sql, object);
+			//DEBUG
+			if(debug){
+				System.out.println("modify result: " + res);
+			}
 		} catch (SQLException | ReflectiveOperationException e) {
 			e.printStackTrace();
 		}
 		return res;
 	}
-
+	
 	@Override
-	public int batchSave(List<T> objects) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int batchModify(List<T> objects) {
+		if(objects == null || objects.size() == 0){
+			return 0;
+		}
+		T object = objects.get(0);
+		String tableName = "";
+		if(object.getClass().isAnnotationPresent(Table.class)){
+			tableName = object.getClass().getAnnotation(Table.class).value();
+		}
+		return batchModify(objects, tableName);
 	}
 
 	@Override
-	public int batchSave(List<T> objects, String tableName) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int batchModify(List<T> objects, String tableName) {
+		int res = 0;
+		if(objects == null || objects.size() == 0){
+			return res;
+		}
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		T object = objects.get(0);
+		String sql = parseUpdate(object, tableName);
+		//DEBUG
+		if(debug){
+			System.out.println("batch modify sql: "+sql);
+		}
+		try {
+			int[] tmp = jdbcOperate.batchObject(sql, objects);
+			for (int i : tmp) {
+				res += i;
+			}
+			//DEBUG
+			if(debug){
+				System.out.println("batch modify result: " + res);
+			}
+		} catch (SQLException | ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
+		return res;
 	}
-
-	@Override
-	public int modify(T object) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int modify(T object, String tableName) {
-		// TODO Auto-generated method stub
-		return 0;
+	
+	private String parseUpdate(T object, String tableName){
+		String sql = "UPDATE `"+tableName+"` SET SQLS WHERE SQLW";
+		String sqlS = "";
+		String sqlW = "";
+		Field[] fields = Tools.getFields(object.getClass());
+		Method[] methods = Tools.getMethods(object.getClass());
+		//遍历属性，只有有get/set方法的属性，才加入insert.
+		for (Field f : fields) {
+			String fname = f.getName();
+			boolean get = false;
+			boolean set = false;
+			for (Method m : methods) {
+				if(("get"+fname).equalsIgnoreCase(m.getName())){
+					get = true;
+				}
+				if(("set"+fname).equalsIgnoreCase(m.getName())){
+					set = true;
+				}
+			}
+			if(get && set){
+				String value = "";
+				if(f.isAnnotationPresent(PrimaryKey.class)){
+					value = f.getAnnotation(PrimaryKey.class).value();
+					if(f.isAnnotationPresent(Column.class)){
+						value = f.getAnnotation(Column.class).value();
+					}
+					fname = Tools.isNullOrEmpty(value) ? fname : value;
+					sqlS += ",`"+fname+"`=:"+fname;
+					sqlW += " and `"+fname+"`=:"+fname;
+				}else{ 
+					if(f.isAnnotationPresent(Column.class)){
+						value = f.getAnnotation(Column.class).value();
+					}
+					fname = Tools.isNullOrEmpty(value) ? fname : value;
+					sqlS += ",`"+fname+"`=:"+fname;
+				}
+			}
+		}
+		if(!Tools.isNullOrEmpty(sqlS)){
+			sql = sql.replace("SQLS", sqlS.substring(1));
+		}
+		if(!Tools.isNullOrEmpty(sqlW)){
+			sql = sql.replace("SQLW", sqlW.substring(" and ".length()));
+		}else{
+			sql = sql.replace("SQLW", " 1 = 1 ");
+		}
+		return sql;
 	}
 
 	@Override
 	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue) {
-		// TODO Auto-generated method stub
-		return 0;
+		//Type: MysqlBaseDaoImpl<T>, Class: MysqlBaseDaoImpl;
+		Type type = getClass().getGenericSuperclass();
+//		Type[] params = ((ParameterizedType) type).getActualTypeArguments();
+//		Class<?> clss = (Class<?>) params[0];
+		String tableName = "";
+		try {
+			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
+			Class<?> clss = clsses[0];
+			if(clss.isAnnotationPresent(Table.class)){
+				tableName = clss.getAnnotation(Table.class).value();
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return modify(updateCondition, updateValue, tableName);
 	}
 
 	@Override
 	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue, String tableName) {
-		// TODO Auto-generated method stub
+		int res = 0;
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		if(updateValue == null || updateValue.isEmpty()){
+			return res;
+		}
+		String sql = "UPDATE `"+tableName+"` SET SQLS WHERE SQLW";
+		String sqlS = "";
+		String sqlW = "";
+		Map<String, Object> params = new HashMap<String, Object>();
+		
+		for (String key : updateValue.keySet()) {
+			sqlS += ",`"+key+"`=:"+key;
+			params.put(key, updateValue.get(key));
+		}
+		if(updateCondition != null){
+			//key+"#"+key 是为了兼容  UPDATE table SET column=:column WHERE column=:column
+			for (String key : updateCondition.keySet()) {
+				sqlW += " and `"+key+"`=:"+key+"#"+key;
+				params.put(key+"#"+key, updateCondition.get(key));
+			}
+		}
+		if(!Tools.isNullOrEmpty(sqlS)){
+			sql = sql.replace("SQLS", sqlS.substring(1));
+		}
+		if(!Tools.isNullOrEmpty(sqlW)){
+			sql = sql.replace("SQLW", sqlW.substring(" and ".length()));
+		}else{
+			sql = sql.replace("SQLW", " 1 = 1 ");
+		}
+		//DEBUG
+		if(debug){
+			System.out.println("condition modify sql: "+sql);
+		}
+		try {
+			res = jdbcOperate.update(sql, params);
+			//DEBUG
+			if(debug){
+				System.out.println("condition modify result: " + res);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return 0;
 	}
 

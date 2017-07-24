@@ -932,7 +932,6 @@ public class Tools {
 		return null;
 	}
 
-
 	
 	public static void main(String[] args) {
 		String imgstr = getImageStr("C:\\Users\\Administrator\\Desktop\\65.png");

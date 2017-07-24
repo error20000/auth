@@ -187,10 +187,7 @@ public class JdbcOperate {
 			// 非事物模式执行
 			if (!isTrancation) {
 				conn.commit();
-				closeConnection(preparedStatement);
-			} else {
-				closeStatement(preparedStatement);
-			}
+			} 
 
 			return result;
 		} catch (SQLException e) {
@@ -199,6 +196,8 @@ public class JdbcOperate {
 			// 非事物模式执行
 			if (!isTrancation) {
 				closeConnection(preparedStatement);
+			} else {
+				closeStatement(preparedStatement);
 			}
 		}
 		return new int[0];
@@ -641,7 +640,7 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 * @throws ReflectiveOperationException 反射异常
 	 */
-	public int[] batchObject(String sqlText, List<Object> objects) throws SQLException, ReflectiveOperationException {
+	public int[] batchObject(String sqlText, List<?> objects) throws SQLException, ReflectiveOperationException {
 		List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
 		for (Object object : objects) {
 			mapList.add(Tools.parseObjectToMap(object));

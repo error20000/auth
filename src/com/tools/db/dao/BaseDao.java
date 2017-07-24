@@ -14,6 +14,8 @@ public interface BaseDao<T> {
 	
 	public int modify(T object);
 	public int modify(T object, String tableName);
+	public int batchModify(List<T> objects);
+	public int batchModify(List<T> objects, String tableName);
 	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue);
 	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue, String tableName);
 	public int modify(String wsql);
