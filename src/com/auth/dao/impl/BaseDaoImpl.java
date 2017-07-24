@@ -11,6 +11,7 @@ public abstract class BaseDaoImpl<T> extends MysqlBaseDaoImpl<T> implements Base
 	public void initJdbcOperate() {
 //		this.dataSource = JdbcOperateManager.getDataSource();
 		this.jdbcOperate = JdbcOperateManager.getJdbcOperate();
+		this.debug = true;
 	}
 
 	

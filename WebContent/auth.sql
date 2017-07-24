@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50515
 File Encoding         : 65001
 
-Date: 2017-07-21 18:16:51
+Date: 2017-07-24 16:50:52
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -235,6 +235,7 @@ CREATE TABLE `s_user` (
   `info` text COMMENT '备注',
   `createTime` varchar(20) DEFAULT '' COMMENT '创建时间',
   `updateTime` varchar(20) DEFAULT '' COMMENT '修改时间',
+  `admin` tinyint(2) DEFAULT '0' COMMENT '管理员 0 -- 普通，1 --超级，2--其他，......',
   PRIMARY KEY (`pid`),
   KEY `index_user` (`username`,`password`) USING BTREE,
   KEY `index_thrid` (`thridId`)
@@ -243,7 +244,7 @@ CREATE TABLE `s_user` (
 -- ----------------------------
 -- Records of s_user
 -- ----------------------------
-INSERT INTO `s_user` VALUES ('1', 'admin', '21232f297a57a5a743894a0e4a801fc3', '', '', '1', null, '', '');
+INSERT INTO `s_user` VALUES ('1', 'admin', '21232f297a57a5a743894a0e4a801fc3', '', '', '1', null, '', '', '1');
 
 -- ----------------------------
 -- Table structure for `s_user_group`

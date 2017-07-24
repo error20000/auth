@@ -20,7 +20,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	
 	protected DataSource dataSource = null;
 	protected JdbcOperate jdbcOperate = null;
+	protected boolean debug = false;
 	
+	
+	public MysqlBaseDaoImpl() {
+		initJdbcOperate();
+	}
+
 	/**
 	 * 如果需要使用事物，要初始化dataSource
 	 */
@@ -70,12 +76,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			}
 		}
 		if(!Tools.isNullOrEmpty(sqlC)){
-			sql.replace("SQLC", sqlC.substring(1));
+			sql = sql.replace("SQLC", sqlC.substring(1));
 		}
 		if(!Tools.isNullOrEmpty(sqlV)){
-			sql.replace("SQLV", sqlV.substring(1));
+			sql = sql.replace("SQLV", sqlV.substring(1));
 		}
-		
+		//DEBUG
+		if(debug){
+			System.out.println("save sql: "+sql);
+		}
 		try {
 			res = jdbcOperate.update(sql, object);
 		} catch (SQLException | ReflectiveOperationException e) {

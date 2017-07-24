@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.tools.utils.Tools;
 
 public class C3P0PropertiesConfig {
 
@@ -89,11 +90,32 @@ public class C3P0PropertiesConfig {
 		        	}else if(key.startsWith("test.")){
 		        		continue;
 		        	}
+//		        	String mname = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
+//		        	Method[] methods = Tools.findMethod(dataSource.getClass(), mname, 1);
 		        	Method[] methods = dataSource.getClass().getDeclaredMethods();
 		        	for (Method method : methods) {
 		        		String tmp = method.getName();
 						if(tmp.startsWith("set") && tmp.substring("set".length()).equalsIgnoreCase(key)){
-							method.invoke(dataSource, properties.getProperty(key));
+							switch (method.getParameterTypes()[0].getSimpleName()) {
+							case "int":
+								method.invoke(dataSource, Tools.parseInt(properties.getProperty(key)));
+								break;
+							case "long":
+								method.invoke(dataSource, Tools.parseLong(properties.getProperty(key)));
+								break;
+							case "float":
+								method.invoke(dataSource, Tools.parseFloat(properties.getProperty(key)));
+								break;
+							case "double":
+								method.invoke(dataSource, Tools.parseDouble(properties.getProperty(key)));
+								break;
+							case "boolean":
+								method.invoke(dataSource, Tools.parseBoolean(properties.getProperty(key)));
+								break;
+							default:
+								method.invoke(dataSource, properties.getProperty(key));
+								break;
+							}
 							break;
 						}
 					}

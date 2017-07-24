@@ -61,7 +61,9 @@ public class TranslateSQL {
 			//去掉前面:号
 			paramName = paramName.substring(1,paramName.length());
 			Object data = params.get(paramName);
-			if(Tools.isBasicType(data.getClass())) {
+			if(data == null) {
+				preparedStatement.setObject(i + 1, params.get(paramName));
+			}else if(Tools.isBasicType(data.getClass())) {
 				preparedStatement.setObject(i + 1, params.get(paramName));
 			}else{
 				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
@@ -82,13 +84,13 @@ public class TranslateSQL {
 
 		//获取参数列表
 		List<String> sqlParams = TranslateSQL.getSqlParams(sqlStr);
-
+		
 		//将没有提供查询参数的条件移除
 		sqlStr = TranslateSQL.removeEmptyCondiction(sqlStr, sqlParams, params);
 
 		//获取preparedStatement可用的 SQL
 		String preparedSql = TranslateSQL.preparedSql(sqlStr);
-
+		
 		PreparedStatement preparedStatement = (PreparedStatement) conn.prepareStatement(preparedSql);
 
 		//如果params为空,则新建一个
@@ -290,7 +292,7 @@ public class TranslateSQL {
 
 
 	/**
-	 * 将SQL 语句中,没有提供查询参数的条件移除
+	 * 将SQL 语句中,没有提供查询参数的条件移除   不适用于insert
 	 * @param sqlText SQL 字符串
 	 * @param sqlParams sql 参数名集合
 	 * @param params 参数集合

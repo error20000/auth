@@ -140,6 +140,19 @@ public class Tools {
 		}
 	}
 	
+	public static boolean parseBoolean(String str){
+		if(isNullOrEmpty(str)){
+			return false;
+		}else{
+			try {
+				return Boolean.parseBoolean(str);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+	}
+	
 	public static String formatDate(){
 		return formatDate(null);
 	}
@@ -376,6 +389,9 @@ public class Tools {
 					case "double":
 						value = Tools.parseDouble(tmpValue);
 						break;
+					case "boolean":
+						value = Tools.parseBoolean(tmpValue);
+						break;
 					default:
 						value = tmpValue;
 						break;
@@ -426,6 +442,9 @@ public class Tools {
 					case "double":
 						value = Tools.parseDouble(tmpValue);
 						break;
+					case "boolean":
+						value = Tools.parseBoolean(tmpValue);
+						break;
 					default:
 						value = tmpValue;
 						break;
@@ -461,6 +480,10 @@ public class Tools {
 						e.printStackTrace();
 					}
 				}
+			}
+			//转String类型，空值为空字符串。
+			if(value == null && "String".equals(f.getType().getSimpleName())){
+				value = "";
 			}
 			map.put(key, value);
 		}

@@ -15,6 +15,7 @@ public class User {
 	private String info;
 	private String createTime;
 	private String updateTime;
+	private int admin;
 	
 	
 	public String getPid() {
@@ -71,6 +72,13 @@ public class User {
 	public void setUpdateTime(String updateTime) {
 		this.updateTime = updateTime;
 	}
+	public int getAdmin() {
+		return admin;
+	}
+	public void setAdmin(int admin) {
+		this.admin = admin;
+	}
+	
 	
 	public String serialize() {
 		JSONObject json = new JSONObject();
@@ -83,6 +91,7 @@ public class User {
 		json.put("info", info);
 		json.put("createTime", createTime);
 		json.put("updateTime", updateTime);
+		json.put("admin", admin);
 		return json.toString();
 	}
 	
@@ -98,6 +107,7 @@ public class User {
 			info = json.getString("info");
 			createTime = json.getString("createTime");
 			updateTime = json.getString("updateTime");
+			admin = json.getInteger("admin");
 		}
 	}
 
