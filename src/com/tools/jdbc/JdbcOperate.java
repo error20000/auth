@@ -115,10 +115,10 @@ public class JdbcOperate {
 			PreparedStatement preparedStatement = TranslateSQL.createPreparedStatement(conn, sqlText, mapArg);
 			//执行查询
 			ResultSet rs = preparedStatement.executeQuery();
-			return new ResultInfo(rs,this.isTrancation);
+			return new ResultInfo(rs, this.isTrancation);
 		} catch (SQLException e) {
 			closeConnection(conn);
-//			Logger.error("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n",e);
+//			System.out.println("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n");
 		}
 		return null;
 	}
@@ -604,7 +604,7 @@ public class JdbcOperate {
 	 */
 	public Map<String, Object> queryMap(String sqlText, Map<String, Object> mapArg) throws SQLException {
 		ResultInfo resultInfo = this.baseQuery(sqlText, mapArg);
-		if(resultInfo!=null){
+		if(resultInfo != null){
 			return resultInfo.getMap();
 		}
 		return null;

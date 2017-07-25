@@ -15,7 +15,7 @@ public class ResultInfo {
     private ResultSet resultSet;
     private boolean isTrancation;
 
-    public ResultInfo(ResultSet resultSet,boolean isTrancation) {
+    public ResultInfo(ResultSet resultSet, boolean isTrancation) {
         this.resultSet = resultSet;
         this.isTrancation = isTrancation;
     }

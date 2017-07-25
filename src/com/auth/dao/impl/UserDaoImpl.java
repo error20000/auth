@@ -1,10 +1,12 @@
 package com.auth.dao.impl;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.fastjson.JSON;
 import com.auth.dao.UserDao;
 import com.auth.entity.User;
 
@@ -68,10 +70,10 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 //		del.put("nick", "test");
 //		dao.delete(del);
 		
-		Map<String, Object> del1 = new HashMap<String, Object>();
-		del1.put("pidaa", "test111");
-		del1.put("nick", "test4");
-		dao.delete(" nick=:nick or pid=:pid", del1);
+//		Map<String, Object> del1 = new HashMap<String, Object>();
+//		del1.put("pidaa", "test111");
+//		del1.put("nick", "test4");
+//		dao.delete(" nick=:nick or pid=:pid", del1);
 
 //		List<String> list = new ArrayList<>();
 //		list.add("test1");
@@ -79,6 +81,39 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 //		list.add("test3");
 //		list.add("test4");
 //		dao.batchDelete("pid", list);
+		
+		//find
+//		dao.findList(" 1=1 group by pid", new HashMap<>());
+
+//		Map<String, Object> cdt = new HashMap<String, Object>();
+//		cdt.put("pid", "test11");
+//		dao.findObject(cdt);
+		
+		//size
+//		Map<String, Object> cdt = new HashMap<String, Object>();
+//		cdt.put("pid", "test");
+//		dao.size(" pid=:pid limit 0, 100", cdt);
+		
+
+		//original
+//		Map<String, Object> cdt = new HashMap<String, Object>();
+//		cdt.put("pid", "test11");
+//		try {
+//			Map<String, Object> res = dao.jdbcOperate.queryMap(" select pid from s_user where pid=:pid", cdt);
+//			System.out.println(JSON.toJSONString(res));
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		//map
+//		Map<String, Object> cdt = new HashMap<String, Object>();
+//		cdt.put("pid", "test");
+//		List<String> list = new ArrayList<>();
+//		list.add("count(1)");
+//		list.add("pid");
+//		list.add("nick");
+//		dao.findMapList(list, cdt);
 		
 	}
 	

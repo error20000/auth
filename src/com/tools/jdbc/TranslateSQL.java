@@ -86,10 +86,11 @@ public class TranslateSQL {
 		List<String> sqlParams = TranslateSQL.getSqlParams(sqlStr);
 		
 		//将没有提供查询参数的条件移除
-		sqlStr = TranslateSQL.removeEmptyCondiction(sqlStr, sqlParams, params);
+		//修改sql有安全隐患
+//		sqlStr = TranslateSQL.removeEmptyCondiction(sqlStr, sqlParams, params);
 
 		//获取preparedStatement可用的 SQL
-		String preparedSql = TranslateSQL.preparedSql(sqlStr);System.out.println(sqlStr);
+		String preparedSql = TranslateSQL.preparedSql(sqlStr);
 		
 		PreparedStatement preparedStatement = (PreparedStatement) conn.prepareStatement(preparedSql);
 
@@ -233,27 +234,34 @@ public class TranslateSQL {
      */
     public static Object getOneRowWithObject(ResultSet resultset, Class<?> clazz)
 			throws SQLException, ReflectiveOperationException, ParseException {
-    	Object object = clazz.newInstance();
     	Map<String, Object> rowMap = getOneRowWithMap(resultset);
-
-    	Field[] fields = clazz.getDeclaredFields();
-		Method[] methods = clazz.getDeclaredMethods();  
-		for (Field f : fields) {
-			String key = f.getName();
-			if(rowMap.get(key) != null){
-				for (Method method : methods) {
-					if(method.getName().replace("set", "").toLowerCase().equals(key.toLowerCase())){
-						try {
-							method.invoke(object, rowMap.get(key));
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}
+    	if(Tools.isBasicType(clazz)){
+    		Object object = null;
+    		for (Entry<String, Object> item : rowMap.entrySet()) {
+    			object = item.getValue();
 			}
-		}
-
-    	return object;
+    		return object;
+    	}else{
+    		Object object = clazz.newInstance();
+    		Field[] fields = clazz.getDeclaredFields();
+    		Method[] methods = clazz.getDeclaredMethods();  
+    		for (Field f : fields) {
+    			String key = f.getName();
+    			if(rowMap.get(key) != null){
+    				for (Method method : methods) {
+    					if(method.getName().replace("set", "").toLowerCase().equals(key.toLowerCase())){
+    						try {
+    							method.invoke(object, rowMap.get(key));
+    						} catch (Exception e) {
+    							e.printStackTrace();
+    						}
+    					}
+    				}
+    			}
+    		}
+    		return object;
+    	}
+    	
     }
     
     /**
@@ -316,8 +324,8 @@ public class TranslateSQL {
 			List<String> condictions = Tools.parseRegEx(condiction,":[^,\\s\\)]+");
 			if(condictions.size() > 0){
 				if(condiction.trim().toLowerCase().startsWith("where")){
-//					sqlText = sqlText.replace(condiction.trim(),"where 1=1"); // 1=1 有安全隐患
-					sqlText = sqlText.replace(condiction.trim(),"where ");
+					sqlText = sqlText.replace(condiction.trim(),"where 1=1"); // 1=1 有安全隐患
+//					sqlText = sqlText.replace(condiction.trim(),"where ");
 				}else{
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
