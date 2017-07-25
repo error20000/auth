@@ -202,7 +202,7 @@ public class JdbcOperate {
 		}
 		return new int[0];
 	}
-
+	
 
 	private List<Object> baseCall(String sqlText, CallType[] callTypes,Map<String, Object> mapArg) throws SQLException {
 		Connection conn = getConnection();
@@ -659,6 +659,61 @@ public class JdbcOperate {
 	public int[] batchMap(String sqlText, List<Map<String, Object>> maps) throws SQLException {
 		return this.baseBatch(sqlText, maps);
 	}
+	
+	/**
+	 * 执行数据库批量更新 只适用于单个字段，基础类型。
+	 * 
+	 * @param sqlText
+	 *            sql字符串 参数使用":"作为标识,例如where id=:id
+	 * @param args
+	 *            基础类型 java.lang
+	 * @return 每条 SQL 更新记录数
+	 * @throws SQLException SQL 异常
+	 * @throws ReflectiveOperationException 反射异常
+	 */
+	public int[] batchBasicType(String sqlText, List<?> args) throws SQLException, ReflectiveOperationException {
+		Connection conn = getConnection();
+		PreparedStatement preparedStatement = null;
+		try {
+
+			// 非事物模式执行
+			if (!isTrancation) {
+				conn.setAutoCommit(false);
+			}
+
+			// 获取 SQL 中的参数列表
+			preparedStatement = (PreparedStatement) conn.prepareStatement(TranslateSQL.preparedSql(sqlText));
+			if (args != null) {
+				for (Object obj : args) {
+					// 给 preparestatement 填充参数
+					if(Tools.isBasicType(obj.getClass())){
+						preparedStatement.setObject(1, obj);
+						preparedStatement.addBatch();
+					}
+					
+				}
+			}
+			int[] result = preparedStatement.executeBatch();
+
+			// 非事物模式执行
+			if (!isTrancation) {
+				conn.commit();
+			} 
+
+			return result;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			// 非事物模式执行
+			if (!isTrancation) {
+				closeConnection(preparedStatement);
+			} else {
+				closeStatement(preparedStatement);
+			}
+		}
+		return new int[0];
+	}
+	
 	/**
 	 * 调用存储过程,无参数
 	 * @param sqlText sql字符串 参数使用":"作为标识,例如where id=:id

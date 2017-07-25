@@ -5,12 +5,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.alibaba.fastjson.JSON;
 import com.tools.db.dao.MysqlBaseDao;
 import com.tools.jdbc.Column;
 import com.tools.jdbc.JdbcOperate;
@@ -70,12 +72,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("save sql: " + sql);
+			Tools.logSet("sql debug", "【SAVE】save sql: " + sql);
+			Tools.logSet("sql debug", "【SAVE】save params: " + JSON.toJSONString(object));
 		}
 		try {
 			res = jdbcOperate.update(sql, object);
 			//DEBUG
 			if(debug){
 				System.out.println("save result: " + res);
+				Tools.logSet("sql debug", "【SAVE】save result: " + res);
 			}
 		} catch (SQLException | ReflectiveOperationException e) {
 			e.printStackTrace();
@@ -109,7 +114,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		String sql = parseInsert(object, tableName);
 		//DEBUG
 		if(debug){
-			System.out.println("batch save sql: "+sql);
+			System.out.println("batch save sql: " + sql);
+			Tools.logSet("sql debug", "【SAVE】batch save sql: " + sql);
+			Tools.logSet("sql debug", "【SAVE】batch save params: " + JSON.toJSONString(objects));
 		}
 		try {
 			int[] tmp = jdbcOperate.batchObject(sql, objects);
@@ -119,6 +126,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			//DEBUG
 			if(debug){
 				System.out.println("batch save result: " + res);
+				Tools.logSet("sql debug", "【SAVE】 batch save result: " + res);
 			}
 		} catch (SQLException | ReflectiveOperationException e) {
 			e.printStackTrace();
@@ -192,12 +200,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("modify sql: " + sql);
+			Tools.logSet("sql debug", "【MODIFY】 modify sql: " + sql);
+			Tools.logSet("sql debug", "【MODIFY】 modify params: " + JSON.toJSONString(object));
 		}
 		try {
 			res = jdbcOperate.update(sql, object);
 			//DEBUG
 			if(debug){
-				System.out.println("modify result: " + res);
+				System.out.println("【MODIFY】 modify result: " + res);
+				Tools.logSet("sql debug", "【MODIFY】 modify result: " + res);
 			}
 		} catch (SQLException | ReflectiveOperationException e) {
 			e.printStackTrace();
@@ -231,7 +242,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		String sql = parseUpdate(object, tableName);
 		//DEBUG
 		if(debug){
-			System.out.println("batch modify sql: "+sql);
+			System.out.println("batch modify sql: " + sql);
+			Tools.logSet("sql debug", "【MODIFY】 batch modify sql: " + sql);
+			Tools.logSet("sql debug", "【MODIFY】 batch modify params: " + JSON.toJSONString(objects));
 		}
 		try {
 			int[] tmp = jdbcOperate.batchObject(sql, objects);
@@ -241,6 +254,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			//DEBUG
 			if(debug){
 				System.out.println("batch modify result: " + res);
+				Tools.logSet("sql debug", "【MODIFY】 batch modify result: " + res);
 			}
 		} catch (SQLException | ReflectiveOperationException e) {
 			e.printStackTrace();
@@ -351,13 +365,16 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		//DEBUG
 		if(debug){
-			System.out.println("condition modify sql: "+sql);
+			System.out.println("condition modify sql: " + sql);
+			Tools.logSet("sql debug", "【MODIFY】 condition modify sql: " + sql);
+			Tools.logSet("sql debug", "【MODIFY】 condition modify params: " + JSON.toJSONString(params));
 		}
 		try {
 			res = jdbcOperate.update(sql, params);
 			//DEBUG
 			if(debug){
 				System.out.println("condition modify result: " + res);
+				Tools.logSet("sql debug", "【MODIFY】 condition modify result: " + res);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -366,61 +383,211 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	}
 
 	@Override
-	public int modify(String wsql) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int modify(String wsql, String tableName) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public int delete(Map<String, Object> deleteCondition) {
-		// TODO Auto-generated method stub
-		return 0;
+		Type type = getClass().getGenericSuperclass();
+		String tableName = "";
+		try {
+			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
+			Class<?> clss = clsses[0];
+			if(clss.isAnnotationPresent(Table.class)){
+				tableName = clss.getAnnotation(Table.class).value();
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return delete(deleteCondition, tableName);
 	}
 
 	@Override
 	public int delete(Map<String, Object> deleteCondition, String tableName) {
-		// TODO Auto-generated method stub
+		int res = 0;
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		if(deleteCondition == null || deleteCondition.isEmpty()){
+			return res;
+		}
+		String sql = "DELETE FROM `"+tableName+"` WHERE SQLW";
+		String sqlW = "";
+		
+		for (String key : deleteCondition.keySet()) {
+			sqlW += " and `"+key+"`=:"+key;
+		}
+		if(!Tools.isNullOrEmpty(sqlW)){
+			sql = sql.replace("SQLW", sqlW.substring(" and ".length()));
+		}
+		//DEBUG
+		if(debug){
+			System.out.println("delete sql: " + sql);
+			Tools.logSet("sql debug", "【DELETE】 delete sql: " + sql);
+			Tools.logSet("sql debug", "【DELETE】 delete params: " + JSON.toJSONString(deleteCondition));
+		}
+		try {
+			res = jdbcOperate.update(sql, deleteCondition);
+			//DEBUG
+			if(debug){
+				System.out.println("delete result: " + res);
+				Tools.logSet("sql debug", "【DELETE】 delete result: " + res);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return 0;
 	}
 
 	@Override
-	public int delete(String wsql) {
-		// TODO Auto-generated method stub
+	public int delete(String wsql, Map<String, Object> deleteCondition) {
+		Type type = getClass().getGenericSuperclass();
+		String tableName = "";
+		try {
+			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
+			Class<?> clss = clsses[0];
+			if(clss.isAnnotationPresent(Table.class)){
+				tableName = clss.getAnnotation(Table.class).value();
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return delete(wsql, deleteCondition, tableName);
+	}
+
+	@Override
+	public int delete(String wsql, Map<String, Object> deleteCondition, String tableName) {
+		int res = 0;
+		if(Tools.isNullOrEmpty(wsql)){
+			return res;
+		}
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		if(deleteCondition == null || deleteCondition.isEmpty()){
+			return res;
+		}
+		String sql = "DELETE FROM `"+tableName+"` where " + wsql;
+		
+		//DEBUG
+		if(debug){
+			System.out.println("wsql delete sql: " + sql);
+			Tools.logSet("sql debug", "【DELETE】 wsql delete sql: " + sql);
+			Tools.logSet("sql debug", "【DELETE】 wsql delete params: " + JSON.toJSONString(deleteCondition));
+		}
+		try {
+			res = jdbcOperate.update(sql, deleteCondition);
+			//DEBUG
+			if(debug){
+				System.out.println("wsql delete result: " + res);
+				Tools.logSet("sql debug", "【DELETE】 wsql delete result: " + res);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return 0;
 	}
 
 	@Override
-	public int delete(String wsql, String tableName) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int batchDelete(String column, List<String> columnValues) {
+		Type type = getClass().getGenericSuperclass();
+		String tableName = "";
+		try {
+			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
+			Class<?> clss = clsses[0];
+			if(clss.isAnnotationPresent(Table.class)){
+				tableName = clss.getAnnotation(Table.class).value();
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return batchDelete(column, columnValues, tableName);
 	}
 
 	@Override
-	public int batchDelete(String fieldName, List<String> fieldValues) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int batchDelete(String fieldName, List<String> fieldValues, String tableName) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int batchDelete(String column, List<String> columnValues, String tableName) {
+		int res = 0;
+		if(Tools.isNullOrEmpty(column)){
+			return res;
+		}
+		if(columnValues == null || columnValues.size() == 0){
+			return res;
+		}
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		String sql = "DELETE FROM `"+tableName+"` WHERE `"+column+"`=:" + column;
+		//DEBUG
+		if(debug){
+			System.out.println("batch delete sql: " + sql);
+			Tools.logSet("sql debug", "【DELETE】 batch delete sql: " + sql);
+			Tools.logSet("sql debug", "【DELETE】 batch delete params: " + JSON.toJSONString(columnValues));
+		}
+		try {
+			int[] tmp = jdbcOperate.batchBasicType(sql, columnValues);
+			for (int i : tmp) {
+				res += i;
+			}
+			//DEBUG
+			if(debug){
+				System.out.println("batch delete result: " + res);
+				Tools.logSet("sql debug", "【DELETE】 batch delete result: " + res);
+			}
+		} catch (SQLException | ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
+		return res;
 	}
 
 	@Override
 	public List<T> find() {
+		Type type = getClass().getGenericSuperclass();
+		String tableName = "";
+		try {
+			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
+			Class<?> clss = clsses[0];
+			if(clss.isAnnotationPresent(Table.class)){
+				tableName = clss.getAnnotation(Table.class).value();
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return find(tableName);
+	}
+
+	@Override
+	public List<T> find(String tableName) {
+		List<T> res = new ArrayList<T>();
+		if(Tools.isNullOrEmpty(tableName)){
+			return res;
+		}
+		String sql = "SELECT * FROM `"+tableName+"` ";
+		//DEBUG
+		if(debug){
+			System.out.println("all find sql: " + sql);
+			Tools.logSet("sql debug", "【QUERY】 all find sql: " + sql);
+			Tools.logSet("sql debug", "【QUERY】 all find params: " + "");
+		}
+		try {
+			Type type = getClass().getGenericSuperclass();
+			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
+			Class<?> clss = clsses[0];
+			res = (List<T>) jdbcOperate.queryObjectList(sql, clss);
+			//DEBUG
+			if(debug){
+				System.out.println("all find result: " + res);
+				Tools.logSet("sql debug", "【QUERY】 all find result: " + JSON.toJSONString(res));
+			}
+		} catch (SQLException | ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+
+	@Override
+	public List<T> find(int start, int rows) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<T> find(int start, int rows) {
+	public List<T> find(int start, int rows, String tableName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -432,19 +599,43 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	}
 
 	@Override
+	public List<T> find(Map<String, Object> queryCondition, String tableName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public List<T> find(Map<String, Object> queryCondition, int start, int rows) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<T> find(String wsql) {
+	public List<T> find(Map<String, Object> queryCondition, int start, int rows, String tableName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<T> find(String wsql, int start, int rows) {
+	public List<T> find(String wsql, Map<String, Object> queryCondition) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<T> find(String wsql, Map<String, Object> queryCondition, String tableName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<T> find(String wsql, Map<String, Object> queryCondition, int start, int rows) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<T> find(String wsql, Map<String, Object> queryCondition, int start, int rows, String tableName) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -456,13 +647,31 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	}
 
 	@Override
+	public long size(String tableName) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
 	public long size(Map<String, Object> queryCondition) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public long size(String wsql) {
+	public long size(Map<String, Object> queryCondition, String tableName) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long size(String wsql, Map<String, Object> queryCondition) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long size(String wsql, Map<String, Object> queryCondition, String tableName) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

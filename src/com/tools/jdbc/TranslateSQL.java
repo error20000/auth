@@ -55,7 +55,7 @@ public class TranslateSQL {
 	 * @param params			参数键值 Map
 	 * @throws SQLException SQL 异常
 	 */
-	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParams,Map<String, Object> params) throws SQLException{
+	public static void setPreparedParams(PreparedStatement preparedStatement, List<String> sqlParams, Map<String, Object> params) throws SQLException{
 		for(int i = 0; i < sqlParams.size(); i++){
 			String paramName = sqlParams.get(i);
 			//去掉前面:号
@@ -89,7 +89,7 @@ public class TranslateSQL {
 		sqlStr = TranslateSQL.removeEmptyCondiction(sqlStr, sqlParams, params);
 
 		//获取preparedStatement可用的 SQL
-		String preparedSql = TranslateSQL.preparedSql(sqlStr);
+		String preparedSql = TranslateSQL.preparedSql(sqlStr);System.out.println(sqlStr);
 		
 		PreparedStatement preparedStatement = (PreparedStatement) conn.prepareStatement(preparedSql);
 
@@ -104,12 +104,12 @@ public class TranslateSQL {
 	}
 	
 	/**
-	 * 创建PreparedStatement
+	 * 创建CallableStatement
 	 * @param conn      数据库连接
 	 * @param sqlStr    sql 自负穿
 	 * @param params    Map 参数
 	 * @param callTypes 调用参数类型
-	 * @return			PreparedStatement 对象
+	 * @return			CallableStatement 对象
 	 * @throws SQLException SQL 异常
 	 */
 	public static CallableStatement createCallableStatement(Connection conn, String sqlStr, Map<String, Object> params, CallType[] callTypes) throws SQLException{
@@ -316,7 +316,8 @@ public class TranslateSQL {
 			List<String> condictions = Tools.parseRegEx(condiction,":[^,\\s\\)]+");
 			if(condictions.size() > 0){
 				if(condiction.trim().toLowerCase().startsWith("where")){
-					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
+//					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
+					sqlText = sqlText.replace(condiction.trim(),"");
 				}else{
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
@@ -535,7 +536,7 @@ public class TranslateSQL {
 //		sqlParams.add(":x");
 //		sqlParams.add(":y");
 //		Map<String, Object> params = new HashMap<>();
-//		params.put("y", "1");
+//		params.put("yss", "1");
 //		System.out.println(removeEmptyCondiction(sqlText, sqlParams, params));
 //		System.out.println("-----------------------");
 
