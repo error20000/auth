@@ -63,15 +63,15 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 //		dao.modify(uc, uv);
 		
 		//delete
-		Map<String, Object> del = new HashMap<String, Object>();
-		del.put("pid", "test");
-		del.put("nick", "test");
-		dao.delete(del);
+//		Map<String, Object> del = new HashMap<String, Object>();
+//		del.put("pid", "test");
+//		del.put("nick", "test");
+//		dao.delete(del);
 		
-//		Map<String, Object> del1 = new HashMap<String, Object>();
-//		del1.put("pidaa", "test111");
-//		del1.put("nicka", "test4");
-//		dao.delete(" nick=:nick or pid=:pid", del1);
+		Map<String, Object> del1 = new HashMap<String, Object>();
+		del1.put("pidaa", "test111");
+		del1.put("nick", "test4");
+		dao.delete(" nick=:nick or pid=:pid", del1);
 
 //		List<String> list = new ArrayList<>();
 //		list.add("test1");

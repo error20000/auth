@@ -316,8 +316,8 @@ public class TranslateSQL {
 			List<String> condictions = Tools.parseRegEx(condiction,":[^,\\s\\)]+");
 			if(condictions.size() > 0){
 				if(condiction.trim().toLowerCase().startsWith("where")){
-//					sqlText = sqlText.replace(condiction.trim(),"where 1=1");
-					sqlText = sqlText.replace(condiction.trim(),"");
+//					sqlText = sqlText.replace(condiction.trim(),"where 1=1"); // 1=1 有安全隐患
+					sqlText = sqlText.replace(condiction.trim(),"where ");
 				}else{
 					sqlText = sqlText.replace(condiction.trim(),"");
 				}
