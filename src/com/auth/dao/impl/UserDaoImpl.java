@@ -9,6 +9,7 @@ import java.util.Map;
 import com.alibaba.fastjson.JSON;
 import com.auth.dao.UserDao;
 import com.auth.entity.User;
+import com.tools.utils.ResultKey;
 
 public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 	
@@ -20,6 +21,7 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 //		user.setPid("test");
 //		user.setNick("test");
 //		dao.save(user);
+//		System.out.println(user.getPid());
 		
 		
 //		List<User> list = new ArrayList<>();
@@ -107,13 +109,14 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 //		}
 		
 		//map
-		Map<String, Object> cdt = new HashMap<String, Object>();
-		cdt.put("pid", "test");
-		List<String> list = new ArrayList<>();
-		list.add("count(1)");
-		list.add("pid");
-		list.add("nick");
-		dao.findMapList(list, cdt);
+//		Map<String, Object> cdt = new HashMap<String, Object>();
+//		cdt.put("pid", "test");
+//		List<String> list = new ArrayList<>();
+//		list.add("count(1)");
+//		list.add("pid");
+//		list.add("nick");
+//		dao.findMapList(list, cdt);
+		
 		
 	}
 	

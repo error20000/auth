@@ -6,9 +6,11 @@ import java.util.Map;
 
 
 /**
- * 当查询参数里包含wsql时，参数queryCondition不会编译为查询条件；
- * 当查询参数里不包含wsql时，参数queryCondition会编译为查询条件。
+ * 基于  {@code JdbcOperate} 的再封装
+ * 
+ * @see com.tools.jdbc.JdbcOperate
  * @author liujian
+ * 
  */
 public interface BaseDao<T> {
 	
@@ -21,8 +23,8 @@ public interface BaseDao<T> {
 	public int modify(T object, String tableName);
 	public int batchModify(List<T> objects);
 	public int batchModify(List<T> objects, String tableName);
-	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue);
-	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue, String tableName);
+	public int modify(Map<String, Object> updateValue, Map<String, Object> updateCondition);
+	public int modify(Map<String, Object> updateValue, Map<String, Object> updateCondition, String tableName);
 	
 	public int delete(Map<String, Object> deleteCondition);
 	public int delete(Map<String, Object> deleteCondition, String tableName);

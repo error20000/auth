@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -17,8 +18,10 @@ import com.tools.db.dao.MysqlBaseDao;
 import com.tools.jdbc.Column;
 import com.tools.jdbc.JdbcOperate;
 import com.tools.jdbc.PrimaryKey;
+import com.tools.jdbc.PrimaryKeyType;
 import com.tools.jdbc.Table;
 import com.tools.utils.LogsTool;
+import com.tools.utils.ResultKey;
 import com.tools.utils.Tools;
 
 
@@ -48,18 +51,26 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	public abstract void initJdbcOperate();
 	
 	//TODO save
+	/**
+	 * 保存对象，返回int受影响条数。
+	 * @param object 被保存对象
+	 * @return int 1 成功，-1 失败
+	 */
 	@Override
 	public int save(T object) {
 		if(object == null){
 			return 0;
 		}
-		String tableName = "";
-		if(object.getClass().isAnnotationPresent(Table.class)){
-			tableName = object.getClass().getAnnotation(Table.class).value();
-		}
+		String tableName = getTableName();
 		return save(object, tableName);
 	}
 
+	/**
+	 * 保存对象，返回int受影响条数。
+	 * @param object 被保存对象
+	 * @param tableName 表名
+	 * @return int 1 成功，-1 失败
+	 */
 	@Override
 	public int save(T object, String tableName) {
 		int res = 0;
@@ -70,6 +81,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			return res;
 		}
 		String sql = parseInsert(object, tableName);
+		//解析主键
+		parsePrimateKey(object);
+		
 		//DEBUG
 		if(debug){
 			System.out.println("save sql: " + sql);
@@ -89,19 +103,26 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return res;
 	}
 
+	/**
+	 * 批量保存对象，返回int总受影响条数。
+	 * @param objects 被保存对象，list集合
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int batchSave(List<T> objects) {
 		if(objects == null || objects.size() == 0){
 			return 0;
 		}
-		T object = objects.get(0);
-		String tableName = "";
-		if(object.getClass().isAnnotationPresent(Table.class)){
-			tableName = object.getClass().getAnnotation(Table.class).value();
-		}
+		String tableName = getTableName();
 		return batchSave(objects, tableName);
 	}
 
+	/**
+	 * 批量保存对象，返回int总受影响条数。
+	 * @param objects 被保存对象，list集合
+	 * @param tableName 表名
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int batchSave(List<T> objects, String tableName) {
 		int res = 0;
@@ -113,6 +134,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		T object = objects.get(0);
 		String sql = parseInsert(object, tableName);
+		//解析主键
+		parsePrimateKey(object);
+		
 		//DEBUG
 		if(debug){
 			System.out.println("batch save sql: " + sql);
@@ -174,20 +198,64 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		return sql;
 	}
+	
+	private void parsePrimateKey(T object){
+		List<Map<String, Object>> pks = getPrimaryKeys(object.getClass());
+		for (Map<String, Object> node : pks) {
+			switch ((PrimaryKeyType) node.get(ResultKey.KEYTYPE)) {
+			case UUID:
+				//处理主键为uuid、并且String类型的
+				if("String".equals(node.get(ResultKey.TYPE))){
+					String nameGet = "get"+node.get(ResultKey.FIELD).toString().substring(0, 1).toUpperCase()+node.get(ResultKey.FIELD).toString().substring(1);
+					Method methdGet = null;
+					Object valueGet = null;
+					String nameSet = "set"+node.get(ResultKey.FIELD).toString().substring(0, 1).toUpperCase()+node.get(ResultKey.FIELD).toString().substring(1);
+					Method methdSet = null;
+					try {
+						methdGet  = Tools.findMethod(object.getClass(), nameGet, 0)[0];
+						valueGet = methdGet.invoke(object);
+						methdSet  = Tools.findMethod(object.getClass(), nameSet, 1)[0];
+						//如果主键为空自动创建一个md5的uuid
+						if(Tools.isNullOrEmpty(valueGet)){
+							methdSet.invoke(object, Tools.md5(UUID.randomUUID().toString()));
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				break;
+				
+			case AUTO_INCREMENT:
+				
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
 
 	//TODO modify
+	/**
+	 * 修改对象，返回int受影响条数。
+	 * @param object 被修改对象。
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int modify(T object) {
 		if(object == null){
 			return 0;
 		}
-		String tableName = "";
-		if(object.getClass().isAnnotationPresent(Table.class)){
-			tableName = object.getClass().getAnnotation(Table.class).value();
-		}
+		String tableName = getTableName();
 		return modify(object, tableName);
 	}
 
+	/**
+	 * 修改对象，返回int受影响条数。
+	 * @param object 被修改对象。
+	 * @param tableName 表名
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int modify(T object, String tableName) {
 		int res = 0;
@@ -217,19 +285,26 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return res;
 	}
 	
+	/**
+	 * 批量修改对象，返回int总受影响条数。
+	 * @param objects 被修改对象，list集合
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int batchModify(List<T> objects) {
 		if(objects == null || objects.size() == 0){
 			return 0;
 		}
-		T object = objects.get(0);
-		String tableName = "";
-		if(object.getClass().isAnnotationPresent(Table.class)){
-			tableName = object.getClass().getAnnotation(Table.class).value();
-		}
+		String tableName = getTableName();
 		return batchModify(objects, tableName);
 	}
-
+	
+	/**
+	 * 批量修改对象，返回int总受影响条数。
+	 * @param objects 被修改对象，list集合
+	 * @param tableName 表名
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int batchModify(List<T> objects, String tableName) {
 		int res = 0;
@@ -307,32 +382,46 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		if(!Tools.isNullOrEmpty(sqlW)){
 			sql = sql.replace("SQLW", sqlW.substring(" and ".length()));
 		}else{
-			sql = sql.replace("SQLW", " 1 = 1 ");
+			sql = sql.replace("SQLW", "");
 		}
 		return sql;
 	}
 
+	/**
+	 * 条件修改，返回int受影响条数。
+	 * @param updateValue 修改值
+	 * @param updateCondition 修改条件
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
-	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue) {
+	public int modify(Map<String, Object> updateValue, Map<String, Object> updateCondition) {
 		//Type: MysqlBaseDaoImpl<T>, Class: MysqlBaseDaoImpl;
-		Type type = getClass().getGenericSuperclass();
-//		Type[] params = ((ParameterizedType) type).getActualTypeArguments();
-//		Class<?> clss = (Class<?>) params[0];
-		String tableName = "";
-		try {
-			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
-			Class<?> clss = clsses[0];
-			if(clss.isAnnotationPresent(Table.class)){
-				tableName = clss.getAnnotation(Table.class).value();
-			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+//		Type type = getClass().getGenericSuperclass();
+////		Type[] params = ((ParameterizedType) type).getActualTypeArguments();
+////		Class<?> clss = (Class<?>) params[0];
+//		String tableName = "";
+//		try {
+//			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
+//			Class<?> clss = clsses[0];
+//			if(clss.isAnnotationPresent(Table.class)){
+//				tableName = clss.getAnnotation(Table.class).value();
+//			}
+//		} catch (ClassNotFoundException e) {
+//			e.printStackTrace();
+//		}
+		String tableName = getTableName();
 		return modify(updateCondition, updateValue, tableName);
 	}
 
+	/**
+	 * 条件修改，返回int受影响条数。
+	 * @param updateValue 修改值
+	 * @param updateCondition 修改条件
+	 * @param tableName 表名
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
-	public int modify(Map<String, Object> updateCondition, Map<String, Object> updateValue, String tableName) {
+	public int modify(Map<String, Object> updateValue, Map<String, Object> updateCondition, String tableName) {
 		int res = 0;
 		if(Tools.isNullOrEmpty(tableName)){
 			return res;
@@ -384,22 +473,23 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	}
 
 	//TODO delete
+	/**
+	 * 条件删除，返回int受影响条数。
+	 * @param deleteCondition 删除条件
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int delete(Map<String, Object> deleteCondition) {
-		Type type = getClass().getGenericSuperclass();
-		String tableName = "";
-		try {
-			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
-			Class<?> clss = clsses[0];
-			if(clss.isAnnotationPresent(Table.class)){
-				tableName = clss.getAnnotation(Table.class).value();
-			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		String tableName = getTableName();
 		return delete(deleteCondition, tableName);
 	}
 
+	/**
+	 * 条件删除，返回int受影响条数。
+	 * @param deleteCondition 删除条件
+	 * @param tableName 表名
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int delete(Map<String, Object> deleteCondition, String tableName) {
 		int res = 0;
@@ -437,22 +527,25 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return 0;
 	}
 
+	/**
+	 * 条件删除，返回int受影响条数。
+	 * @param wsql 删除条件的where语句，不包括where。如 id=:id
+	 * @param deleteCondition 删除条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int delete(String wsql, Map<String, Object> deleteCondition) {
-		Type type = getClass().getGenericSuperclass();
-		String tableName = "";
-		try {
-			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
-			Class<?> clss = clsses[0];
-			if(clss.isAnnotationPresent(Table.class)){
-				tableName = clss.getAnnotation(Table.class).value();
-			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		String tableName = getTableName();
 		return delete(wsql, deleteCondition, tableName);
 	}
 
+	/**
+	 * 条件删除，返回int受影响条数。
+	 * @param wsql 删除条件的where语句，不包括where。如 id=:id
+	 * @param deleteCondition 删除条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int delete(String wsql, Map<String, Object> deleteCondition, String tableName) {
 		int res = 0;
@@ -486,22 +579,25 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return 0;
 	}
 
+	/**
+	 * 批量删除，返回int受影响条数。
+	 * @param column 数据表列名。如 id
+	 * @param columnValues 值，list集合。
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int batchDelete(String column, List<String> columnValues) {
-		Type type = getClass().getGenericSuperclass();
-		String tableName = "";
-		try {
-			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
-			Class<?> clss = clsses[0];
-			if(clss.isAnnotationPresent(Table.class)){
-				tableName = clss.getAnnotation(Table.class).value();
-			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		String tableName = getTableName();
 		return batchDelete(column, columnValues, tableName);
 	}
 
+	/**
+	 * 批量删除，返回int受影响条数。
+	 * @param column 数据表列名。如 id
+	 * @param columnValues 值，list集合。
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败
+	 */
 	@Override
 	public int batchDelete(String column, List<String> columnValues, String tableName) {
 		int res = 0;
@@ -539,45 +635,93 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	
 
 	//TODO find
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList() {
 		String tableName = getTableName();
 		return findList(tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param tableName 表名。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(String tableName) {
 		return findList(0, -1, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(int start, int rows) {
 		String tableName = getTableName();
 		return findList(start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @param tableName 表名。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(int start, int rows, String tableName) {
 		return findList(new HashMap<String, Object>(), start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param queryCondition 查询条件。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return findList(queryCondition, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param queryCondition 查询条件。
+	 * @param tableName 表名。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(Map<String, Object> queryCondition, String tableName) {
 		return findList(queryCondition, 0, -1, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param queryCondition 查询条件。
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(Map<String, Object> queryCondition, int start, int rows) {
 		String tableName = getTableName();
 		return findList(queryCondition, start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param queryCondition 查询条件。
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @param tableName 表名。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(Map<String, Object> queryCondition, int start, int rows, String tableName) {
 		String wsql = " 1=1 ";
@@ -587,23 +731,53 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return findList(wsql, queryCondition, start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(String wsql, Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return  findList(wsql, queryCondition, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @param tableName 表名。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(String wsql, Map<String, Object> queryCondition, String tableName) {
 		return findList(wsql, queryCondition, 0, -1, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @return list 对象集合。
+	 */
 	@Override
 	public List<T> findList(String wsql, Map<String, Object> queryCondition, int start, int rows) {
 		String tableName = getTableName();
 		return findList(wsql, queryCondition, start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回对象list集合。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx。
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @param tableName 表名。
+	 * @return list 对象集合。
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<T> findList(String wsql, Map<String, Object> queryCondition, int start, int rows, String tableName) {
@@ -644,12 +818,23 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return res;
 	}
 	
+	/**
+	 * 查询对象，返回对象。
+	 * @param queryCondition 查询条件。
+	 * @return T 对象。
+	 */
 	@Override
 	public T findObject(Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return findObject(queryCondition, tableName);
 	}
 	
+	/**
+	 * 查询对象，返回对象。
+	 * @param queryCondition 查询条件。
+	 * @param tableName 表名。
+	 * @return T 对象。
+	 */
 	@Override
 	public T findObject(Map<String, Object> queryCondition, String tableName) {
 		String wsql = " 1=1 ";
@@ -659,12 +844,25 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return findObject(wsql, queryCondition, tableName);
 	}
 	
+	/**
+	 * 查询对象，返回对象。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @return T 对象。
+	 */
 	@Override
 	public T findObject(String wsql, Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return findObject(wsql, queryCondition, tableName);
 	}
 
+	/**
+	 * 查询对象，返回对象。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @param tableName 表名。
+	 * @return T 对象。
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public T findObject(String wsql, Map<String, Object> queryCondition, String tableName) {
@@ -702,23 +900,53 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return null;
 	}
 	
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param queryCondition 查询条件.
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return findMapList(columns, queryCondition, tableName);
 	}
 	
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param queryCondition 查询条件.
+	 * @param tableName 表名。
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition, String tableName) {
 		return findMapList(columns, queryCondition, 0, -1, tableName);
 	}
 	
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param queryCondition 查询条件.
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition, int start, int rows) {
 		String tableName = getTableName();
 		return findMapList(columns, queryCondition, start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param queryCondition 查询条件.
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @param tableName 表名。
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition, int start, int rows, String tableName) {
 		String wsql = " 1=1 ";
@@ -728,23 +956,57 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return findMapList(columns, wsql, queryCondition, start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx。
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return findMapList(columns, wsql, queryCondition, tableName);
 	}
 
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx。
+	 * @param tableName 表名。
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition, String tableName) {
 		return findMapList(columns, wsql, queryCondition, 0, -1, tableName);
 	}
 
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx。
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition,int start, int rows) {
 		String tableName = getTableName();
 		return findMapList(columns, wsql, queryCondition, start, rows, tableName);
 	}
 
+	/**
+	 * 查询数量，返回maplist集合。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx。
+	 * @param start 起始条数。
+	 * @param rows 查询条数。
+	 * @param tableName 表名。
+	 * @return list maplist集合。
+	 */
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition, int start, int rows, String tableName) {
 		List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
@@ -793,12 +1055,25 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return res;
 	}
 
+	/**
+	 * 查询对象，返回map。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param queryCondition 查询条件。
+	 * @return map map对象。
+	 */
 	@Override
 	public Map<String, Object> findMap(List<String> columns, Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return findMap(columns, queryCondition, tableName);
 	}
 
+	/**
+	 * 查询对象，返回map。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param queryCondition 查询条件。
+	 * @param tableName 表名。
+	 * @return map map对象。
+	 */
 	@Override
 	public Map<String, Object> findMap(List<String> columns, Map<String, Object> queryCondition, String tableName) {
 		String wsql = " 1=1 ";
@@ -808,12 +1083,27 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return findMap(columns, wsql, queryCondition, tableName);
 	}
 	
+	/**
+	 * 查询对象，返回map。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx。
+	 * @return map map对象。
+	 */
 	@Override
 	public Map<String, Object> findMap(List<String> columns, String wsql, Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return findMap(columns, wsql, queryCondition, tableName);
 	}
 
+	/**
+	 * 查询对象，返回map。
+	 * @param columns 需要返回的列名，默认*。 如 id、name、count(1)
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx。
+	 * @param tableName 表名。
+	 * @return map map对象。
+	 */
 	@Override
 	public Map<String, Object> findMap(List<String> columns, String wsql, Map<String, Object> queryCondition, String tableName) {
 		if(Tools.isNullOrEmpty(tableName)){
@@ -859,23 +1149,43 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	}
 
 	//TODO size
+	/**
+	 * 查询条数，返回long总条数。
+	 * @return long 总条数。
+	 */
 	@Override
 	public long size() {
 		String tableName = getTableName();
 		return size(tableName);
 	}
 
+	/**
+	 * 查询条数，返回long总条数。
+	 * @param tableName 表名。
+	 * @return long 总条数。
+	 */
 	@Override
 	public long size(String tableName) {
 		return size(new HashMap<String, Object>(), tableName);
 	}
 
+	/**
+	 * 查询条数，返回long总条数。
+	 * @param queryCondition 查询条件。
+	 * @return long 总条数。
+	 */
 	@Override
 	public long size(Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return size(queryCondition, tableName);
 	}
 
+	/**
+	 * 查询条数，返回long总条数。
+	 * @param queryCondition 查询条件。
+	 * @param tableName 表名。
+	 * @return long 总条数。
+	 */
 	@Override
 	public long size(Map<String, Object> queryCondition, String tableName) {
 		String wsql = " 1=1 ";
@@ -885,12 +1195,25 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return size(wsql, queryCondition, tableName);
 	}
 
+	/**
+	 * 查询条数，返回long总条数。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @return long 总条数。
+	 */
 	@Override
 	public long size(String wsql, Map<String, Object> queryCondition) {
 		String tableName = getTableName();
 		return size(wsql, queryCondition, tableName);
 	}
 
+	/**
+	 * 查询条数，返回long总条数。
+	 * @param wsql 查询条件的where语句，不包括where。如 id=:id
+	 * @param queryCondition 查询条件赋值，不参与拼接sql语句，不能为null。如 key：id，value：xxx
+	 * @param tableName 表名
+	 * @return long 总条数。
+	 */
 	@Override
 	public long size(String wsql, Map<String, Object> queryCondition, String tableName) {
 		long res = 0;
@@ -937,6 +1260,21 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			e.printStackTrace();
 		}
 		return tableName;
+	}
+	
+	private List<Map<String, Object>> getPrimaryKeys(Class<?> clss){
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		Field[] fields = Tools.getFields(clss);
+		for (Field f : fields) {
+			if(f.isAnnotationPresent(PrimaryKey.class)){
+				Map<String, Object> node = new HashMap<String, Object>();
+				node.put(ResultKey.FIELD, f.getName());
+				node.put(ResultKey.TYPE, f.getType().getSimpleName());
+				node.put(ResultKey.KEYTYPE, f.getAnnotation(PrimaryKey.class).type());
+				list.add(node);
+			}
+		}
+		return list;
 	}
 
 
