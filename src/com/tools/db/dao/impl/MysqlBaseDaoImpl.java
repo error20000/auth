@@ -721,6 +721,32 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 
 	@Override
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition, int start, int rows, String tableName) {
+		String wsql = " 1=1 ";
+		for (String key : queryCondition.keySet()) {
+			wsql += " and `"+key+"`=:"+key;
+		}
+		return findMapList(columns, wsql, queryCondition, start, rows, tableName);
+	}
+
+	@Override
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition) {
+		String tableName = getTableName();
+		return findMapList(columns, wsql, queryCondition, tableName);
+	}
+
+	@Override
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition, String tableName) {
+		return findMapList(columns, wsql, queryCondition, 0, -1, tableName);
+	}
+
+	@Override
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition,int start, int rows) {
+		String tableName = getTableName();
+		return findMapList(columns, wsql, queryCondition, start, rows, tableName);
+	}
+
+	@Override
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition, int start, int rows, String tableName) {
 		List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
 		if(Tools.isNullOrEmpty(tableName)){
 			return res;
@@ -728,24 +754,21 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		if(queryCondition == null){
 			return res;
 		}
-		
-		String sql = "SELECT FIELDS FROM `"+tableName+"` WHERE SQLW";
+		if(Tools.isNullOrEmpty(wsql)){
+			return res;
+		}
+		String sql = "SELECT FIELDS FROM `"+tableName+"` WHERE " + wsql;
 		String fields = "";
-		String sqlW = " 1=1 ";
 		if(columns != null){
 			for (String str : columns) {
 				fields += ","+str;
 			}
-		}
-		for (String key : queryCondition.keySet()) {
-			sqlW += " and `"+key+"`=:"+key;
 		}
 		if(!Tools.isNullOrEmpty(fields)){
 			sql = sql.replace("FIELDS", fields.substring(1));
 		}else{
 			sql = sql.replace("FIELDS", "*");
 		}
-		sql = sql.replace("SQLW", sqlW);
 		//-1 不参与分页
 		if(rows != -1){
 			sql += " limit " + start + ", " + rows;
@@ -761,7 +784,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			res = jdbcOperate.queryMapList(sql, queryCondition);
 			//DEBUG
 			if(debug){
-				System.out.println("find result: " + res);
+				System.out.println("mapList find result: " + res);
 				LogsTool.logSet("sql debug", "【QUERY】 mapList find result: " + JSON.toJSONString(res));
 			}
 		} catch (SQLException e) {
@@ -769,7 +792,6 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		return res;
 	}
-	
 
 	@Override
 	public Map<String, Object> findMap(List<String> columns, Map<String, Object> queryCondition) {
@@ -779,30 +801,42 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 
 	@Override
 	public Map<String, Object> findMap(List<String> columns, Map<String, Object> queryCondition, String tableName) {
+		String wsql = " 1=1 ";
+		for (String key : queryCondition.keySet()) {
+			wsql += " and `"+key+"`=:"+key;
+		}
+		return findMap(columns, wsql, queryCondition, tableName);
+	}
+	
+	@Override
+	public Map<String, Object> findMap(List<String> columns, String wsql, Map<String, Object> queryCondition) {
+		String tableName = getTableName();
+		return findMap(columns, wsql, queryCondition, tableName);
+	}
+
+	@Override
+	public Map<String, Object> findMap(List<String> columns, String wsql, Map<String, Object> queryCondition, String tableName) {
 		if(Tools.isNullOrEmpty(tableName)){
 			return null;
 		}
 		if(queryCondition == null){
 			return null;
 		}
-		
-		String sql = "SELECT FIELDS FROM `"+tableName+"` WHERE SQLW";
+		if(Tools.isNullOrEmpty(wsql)){
+			return null;
+		}
+		String sql = "SELECT FIELDS FROM `" + tableName + "` WHERE " + wsql;
 		String fields = "";
-		String sqlW = " 1=1 ";
 		if(columns != null){
 			for (String str : columns) {
 				fields += ","+str;
 			}
-		}
-		for (String key : queryCondition.keySet()) {
-			sqlW += " and `"+key+"`=:"+key;
 		}
 		if(!Tools.isNullOrEmpty(fields)){
 			sql = sql.replace("FIELDS", fields.substring(1));
 		}else{
 			sql = sql.replace("FIELDS", "*");
 		}
-		sql = sql.replace("SQLW", sqlW);
 		
 		//DEBUG
 		if(debug){

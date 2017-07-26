@@ -5,6 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * 当查询参数里包含wsql时，参数queryCondition不会编译为查询条件；
+ * 当查询参数里不包含wsql时，参数queryCondition会编译为查询条件。
+ * @author liujian
+ */
 public interface BaseDao<T> {
 	
 	public int save(T object);
@@ -48,9 +53,15 @@ public interface BaseDao<T> {
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition, String tableName);
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition, int start, int rows);
 	public List<Map<String, Object>> findMapList(List<String> columns, Map<String, Object> queryCondition, int start, int rows,  String tableName);
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition);
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition, String tableName);
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition, int start, int rows);
+	public List<Map<String, Object>> findMapList(List<String> columns, String wsql, Map<String, Object> queryCondition, int start, int rows,  String tableName);
 	
 	public Map<String, Object> findMap(List<String> columns, Map<String, Object> queryCondition);
 	public Map<String, Object> findMap(List<String> columns, Map<String, Object> queryCondition, String tableName);
+	public Map<String, Object> findMap(List<String> columns, String wsql, Map<String, Object> queryCondition);
+	public Map<String, Object> findMap(List<String> columns, String wsql, Map<String, Object> queryCondition, String tableName);
 
 	public long size();
 	public long size(String tableName);

@@ -107,13 +107,13 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 //		}
 		
 		//map
-//		Map<String, Object> cdt = new HashMap<String, Object>();
-//		cdt.put("pid", "test");
-//		List<String> list = new ArrayList<>();
-//		list.add("count(1)");
-//		list.add("pid");
-//		list.add("nick");
-//		dao.findMapList(list, cdt);
+		Map<String, Object> cdt = new HashMap<String, Object>();
+		cdt.put("pid", "test");
+		List<String> list = new ArrayList<>();
+		list.add("count(1)");
+		list.add("pid");
+		list.add("nick");
+		dao.findMapList(list, cdt);
 		
 	}
 	
