@@ -1,4 +1,4 @@
-package com.auth.dao.impl;
+package com.test;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,25 +14,31 @@ import com.auth.entity.User;
 import com.tools.db.dao.impl.MysqlThreadBaseDaoImpl;
 import com.tools.utils.ResultKey;
 
-public class TestThreadDaoImpl extends MysqlThreadBaseDaoImpl<User> implements BaseDao<User> {
+public class TestThreadDaoImpl extends MysqlThreadBaseDaoImpl<User> {
 	
 	
 	@Override
 	public void initJdbcOperate() {
 //		this.dataSource = JdbcOperateManager.getDataSource();
-//		this.jdbcOperate = JdbcOperateManager.getJdbcOperate();
-		this.debug = true;
-//		this.count = 100;
+		this.jdbcOperate = JdbcOperateManager.getJdbcOperate();
+		this.log = true;
+//		this.count = 20;
 	}
 	
 	public static void main(String[] args) {
 		TestThreadDaoImpl dao = new TestThreadDaoImpl();
 		//save
-		User user = new User();
-		user.setPid("test12");
-		user.setNick("test");
-		dao.save2(user);
-		System.out.println(user.getPid());
+		dao.exeJob(new Runnable() {
+			@Override
+			public void run() {
+				User user = new User();
+				user.setPid("test12");
+				user.setNick("test");
+				dao.save(user);
+				System.out.println(user.getPid());
+			}
+		});
+		System.out.println("test");
 		
 //		for (int i = 0; i < 100; i++) {
 //			dao.save2(i);

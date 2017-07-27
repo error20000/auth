@@ -3,11 +3,14 @@ package com.tools.utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
 public class LogsTool {
 
+	private static ExecutorService service = Executors.newFixedThreadPool(20);
 	
 	/**
 	 * 写日志，保存为文件
@@ -52,25 +55,31 @@ public class LogsTool {
 	 * @param file
 	 * @param log
 	 */
-	public static synchronized void logSet(File file, String log) {
-		OutputStream out;
-		try {
-			//file.getParentFile().mkdirs();
-			File pfile = file.getParentFile();
-			if(!pfile.exists()){
-				pfile.mkdirs();
+	public static void logSet(File file, String log) {
+		service.submit(new Runnable() {
+			@Override
+			public void run() {
+				synchronized (file) {
+					OutputStream out;
+					try {
+						//file.getParentFile().mkdirs();
+						File pfile = file.getParentFile();
+						if(!pfile.exists()){
+							pfile.mkdirs();
+						}
+						String str = Tools.formatDate(null, "yyyy-MM-dd hh:mm:ss") + " -- " + log;
+						out = new FileOutputStream(file, true);
+						byte[] b = new String(str + "\r\n").getBytes("utf-8");
+						for (int i = 0; i < b.length; i++) {
+							out.write(b[i]);
+						}
+						out.close();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
-			log = Tools.formatDate(null, "yyyy-MM-dd hh:mm:ss") + " -- " + log;
-			out = new FileOutputStream(file, true);
-			byte[] b = new String(log + "\r\n").getBytes("utf-8");
-			for (int i = 0; i < b.length; i++) {
-				out.write(b[i]);
-			}
-			out.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+		});
 	}
 	
 }

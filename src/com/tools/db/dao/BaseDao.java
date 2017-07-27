@@ -10,9 +10,9 @@ import com.tools.jdbc.PrimaryKeyCondition;
 /**
  * 基于  {@code JdbcOperate} 的再封装
  * 
- * @see com.tools.jdbc.JdbcOperate
  * @author liujian
  * 
+ * @see com.tools.jdbc.JdbcOperate
  */
 public interface BaseDao<T> {
 	

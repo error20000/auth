@@ -1,4 +1,4 @@
-package com.auth.dao.impl;
+package com.test;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -8,11 +8,20 @@ import java.util.Map;
 
 import com.alibaba.fastjson.JSON;
 import com.auth.dao.UserDao;
+import com.auth.dao.impl.BaseDaoImpl;
+import com.auth.dao.util.JdbcOperateManager;
 import com.auth.entity.User;
+import com.tools.db.dao.impl.MysqlBaseDaoImpl;
 import com.tools.utils.ResultKey;
 
-public class TestDaoImpl extends BaseDaoImpl<User> implements UserDao {
+public class TestDaoImpl extends MysqlBaseDaoImpl<User> {
 	
+	@Override
+	public void initJdbcOperate() {
+//		this.dataSource = JdbcOperateManager.getDataSource();
+		this.jdbcOperate = JdbcOperateManager.getJdbcOperate();
+		this.log = true;
+	}
 	
 	public static void main(String[] args) {
 		TestDaoImpl dao = new TestDaoImpl();

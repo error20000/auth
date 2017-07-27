@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,12 @@ import com.tools.jdbc.Table;
 import com.tools.utils.LogsTool;
 import com.tools.utils.Tools;
 
-
+/**
+ * Mysql 基本查询封装
+ * @author liujian
+ *
+ * @param <T>
+ */
 public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 
 	/**
@@ -35,9 +39,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	 */
 	protected JdbcOperate jdbcOperate = null;
 	/**
-	 * sql 调试打印（非必须），默认：false
+	 * sql 日志打印（非必须），默认：false
 	 */
-	protected boolean debug = false;
+	protected boolean log = false;
 	
 	private String logPath = "sql";
 	
@@ -102,7 +106,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		parsePrimateKey(object, pkeys);
 		
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("save sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】save sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】save params: " + JSON.toJSONString(object));
@@ -110,12 +114,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			res = jdbcOperate.update(sql, object);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("save result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【SAVE】save result: " + res);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
@@ -173,7 +178,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("batch save sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】batch save sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】batch save params: " + JSON.toJSONString(objects));
@@ -184,12 +189,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 				res += i;
 			}
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("batch save result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【SAVE】 batch save result: " + res);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
@@ -311,7 +317,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		String sql = parseUpdate(object, pkeys, tableName);
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("modify sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 modify sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 modify params: " + JSON.toJSONString(object));
@@ -319,12 +325,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			res = jdbcOperate.update(sql, object);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("【MODIFY】 modify result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 modify result: " + res);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
@@ -377,7 +384,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		T object = objects.get(0);
 		String sql = parseUpdate(object, pkeys, tableName);
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("batch modify sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 batch modify sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 batch modify params: " + JSON.toJSONString(objects));
@@ -388,12 +395,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 				res += i;
 			}
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("batch modify result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 batch modify result: " + res);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
@@ -461,6 +469,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 //			}
 //		} catch (ClassNotFoundException e) {
 //			e.printStackTrace();
+//			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 //		}
 		String tableName = getTableName();
 		return modify(updateCondition, updateValue, tableName);
@@ -507,7 +516,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			sql = sql.replace("SQLW", " 1 = 1 ");
 		}
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("condition modify sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 condition modify sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 condition modify params: " + JSON.toJSONString(params));
@@ -515,12 +524,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			res = jdbcOperate.update(sql, params);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("condition modify result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 condition modify result: " + res);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return 0;
 	}
@@ -562,7 +572,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			sql = sql.replace("SQLW", sqlW.substring(" and ".length()));
 		}
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("delete sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 delete sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 delete params: " + JSON.toJSONString(deleteCondition));
@@ -570,12 +580,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			res = jdbcOperate.update(sql, deleteCondition);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("delete result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 delete result: " + res);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return 0;
 	}
@@ -614,7 +625,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		String sql = "DELETE FROM `"+tableName+"` where " + wsql;
 		
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("wsql delete sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 wsql delete sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 wsql delete params: " + JSON.toJSONString(deleteCondition));
@@ -622,12 +633,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			res = jdbcOperate.update(sql, deleteCondition);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("wsql delete result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 wsql delete result: " + res);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return 0;
 	}
@@ -665,7 +677,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		String sql = "DELETE FROM `"+tableName+"` WHERE `"+column+"`=:" + column;
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("batch delete sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 batch delete sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 batch delete params: " + JSON.toJSONString(columnValues));
@@ -676,12 +688,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 				res += i;
 			}
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("batch delete result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 batch delete result: " + res);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
@@ -850,7 +863,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			sql += " limit " + start + ", " + rows;
 		}
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("list find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 list find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 list find params: " + JSON.toJSONString(queryCondition));
@@ -861,12 +874,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			Class<?> clss = clsses[0];
 			res = (List<T>) jdbcOperate.queryObjectList(sql, clss, queryCondition);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("find result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 list find result: " + JSON.toJSONString(res));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
@@ -931,7 +945,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		String sql = "SELECT * FROM `"+tableName+"` WHERE " + wsql;
 		
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("object find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 object find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 object find params: " + JSON.toJSONString(queryCondition));
@@ -942,13 +956,14 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			Class<?> clss = clsses[0];
 			T res = (T) jdbcOperate.queryObject(sql, clss, queryCondition);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("find result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 object find result: " + JSON.toJSONString(res));
 			}
 			return res;
 		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return null;
 	}
@@ -1090,7 +1105,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("mapList find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 mapList find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 mapList find params: " + JSON.toJSONString(queryCondition));
@@ -1098,12 +1113,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			res = jdbcOperate.queryMapList(sql, queryCondition);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("mapList find result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 mapList find result: " + JSON.toJSONString(res));
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
@@ -1182,7 +1198,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("map find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 map find sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 map find params: " + JSON.toJSONString(queryCondition));
@@ -1190,13 +1206,14 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			Map<String, Object> res = jdbcOperate.queryMap(sql, queryCondition);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("map find result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 map find result: " + JSON.toJSONString(res));
 			}
 			return res;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return null;
 	}
@@ -1281,7 +1298,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		String sql = "SELECT count(1) FROM `"+tableName+"` WHERE " + wsql;
 		//DEBUG
-		if(debug){
+		if(log){
 			System.out.println("size sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【COUNT】 size sql: " + sql);
 			LogsTool.logSet(logPath+"/"+tableName, "【COUNT】 size params: " + JSON.toJSONString(queryCondition));
@@ -1289,12 +1306,13 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		try {
 			res = jdbcOperate.queryObject(sql, Long.class, queryCondition);
 			//DEBUG
-			if(debug){
+			if(log){
 				System.out.println("size result: " + res);
 				LogsTool.logSet(logPath+"/"+tableName, "【COUNT】 size result: " + JSON.toJSONString(res));
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
 		return res;
 	}
