@@ -1,11 +1,13 @@
 package com.auth.entity;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tools.jdbc.PrimaryKey;
 import com.tools.jdbc.Table;
 
 @Table("s_menu")
 public class Menu {
-	
+
+	@PrimaryKey
 	private String pid;
 	private String appId;
 	private String parentId;

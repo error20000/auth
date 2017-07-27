@@ -247,9 +247,16 @@ public class TranslateSQL {
     		Method[] methods = clazz.getDeclaredMethods();  
     		for (Field f : fields) {
     			String key = f.getName();
+    			//获取字段别名，如果注解PrimaryKey、Column都有，取Column注解。
+    			if(f.isAnnotationPresent(PrimaryKey.class)){
+    				key = f.getAnnotation(PrimaryKey.class).value();
+				}
+    			if(f.isAnnotationPresent(Column.class)){
+					key = f.getAnnotation(Column.class).value();
+				}
     			if(rowMap.get(key) != null){
     				for (Method method : methods) {
-    					if(method.getName().replace("set", "").toLowerCase().equals(key.toLowerCase())){
+    					if(method.getName().replace("set", "").toLowerCase().equals(f.getName().toLowerCase())){
     						try {
     							method.invoke(object, rowMap.get(key));
     						} catch (Exception e) {

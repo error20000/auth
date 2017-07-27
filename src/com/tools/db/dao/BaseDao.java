@@ -4,6 +4,8 @@ package com.tools.db.dao;
 import java.util.List;
 import java.util.Map;
 
+import com.tools.jdbc.PrimaryKeyCondition;
+
 
 /**
  * 基于  {@code JdbcOperate} 的再封装
@@ -16,13 +18,17 @@ public interface BaseDao<T> {
 	
 	public int save(T object);
 	public int save(T object, String tableName);
+	public int save(T object, List<PrimaryKeyCondition> pkeys, String tableName);
 	public int batchSave(List<T> objects);
 	public int batchSave(List<T> objects, String tableName);
+	public int batchSave(List<T> objects, List<PrimaryKeyCondition> pkeys, String tableName);
 	
 	public int modify(T object);
 	public int modify(T object, String tableName);
+	public int modify(T object, List<PrimaryKeyCondition> pkeys, String tableName);
 	public int batchModify(List<T> objects);
 	public int batchModify(List<T> objects, String tableName);
+	public int batchModify(List<T> objects, List<PrimaryKeyCondition> pkeys, String tableName);
 	public int modify(Map<String, Object> updateValue, Map<String, Object> updateCondition);
 	public int modify(Map<String, Object> updateValue, Map<String, Object> updateCondition, String tableName);
 	

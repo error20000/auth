@@ -18,10 +18,9 @@ import com.tools.db.dao.MysqlBaseDao;
 import com.tools.jdbc.Column;
 import com.tools.jdbc.JdbcOperate;
 import com.tools.jdbc.PrimaryKey;
-import com.tools.jdbc.PrimaryKeyType;
+import com.tools.jdbc.PrimaryKeyCondition;
 import com.tools.jdbc.Table;
 import com.tools.utils.LogsTool;
-import com.tools.utils.ResultKey;
 import com.tools.utils.Tools;
 
 
@@ -39,6 +38,8 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	 * sql 调试打印（非必须），默认：false
 	 */
 	protected boolean debug = false;
+	
+	private String logPath = "sql";
 	
 	
 	public MysqlBaseDaoImpl() {
@@ -64,15 +65,31 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		String tableName = getTableName();
 		return save(object, tableName);
 	}
-
+	
 	/**
 	 * 保存对象，返回int受影响条数。
-	 * @param object 被保存对象
-	 * @param tableName 表名
-	 * @return int 1 成功，-1 失败
+	 * @param object 被保存对象。
+	 * @param tableName 表名。
+	 * @return int 1 成功，-1 失败。
 	 */
 	@Override
 	public int save(T object, String tableName) {
+		if(object == null){
+			return 0;
+		}
+		List<PrimaryKeyCondition> pkeys = getPrimaryKeys(object.getClass());
+		return save(object, pkeys, tableName);
+	}
+
+	/**
+	 * 保存对象，返回int受影响条数。
+	 * @param object 被保存对象。
+	 * @param pkeys 对象主键信息，list集合。
+	 * @param tableName 表名。
+	 * @return int 1 成功，-1 失败。
+	 */
+	@Override
+	public int save(T object, List<PrimaryKeyCondition> pkeys, String tableName) {
 		int res = 0;
 		if(object == null){
 			return res;
@@ -82,22 +99,22 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		}
 		String sql = parseInsert(object, tableName);
 		//解析主键
-		parsePrimateKey(object);
+		parsePrimateKey(object, pkeys);
 		
 		//DEBUG
 		if(debug){
 			System.out.println("save sql: " + sql);
-			LogsTool.logSet("sql debug", "【SAVE】save sql: " + sql);
-			LogsTool.logSet("sql debug", "【SAVE】save params: " + JSON.toJSONString(object));
+			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】save sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】save params: " + JSON.toJSONString(object));
 		}
 		try {
 			res = jdbcOperate.update(sql, object);
 			//DEBUG
 			if(debug){
 				System.out.println("save result: " + res);
-				LogsTool.logSet("sql debug", "【SAVE】save result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【SAVE】save result: " + res);
 			}
-		} catch (SQLException | ReflectiveOperationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return res;
@@ -105,8 +122,8 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 
 	/**
 	 * 批量保存对象，返回int总受影响条数。
-	 * @param objects 被保存对象，list集合
-	 * @return int 1 成功，0 失败
+	 * @param objects 被保存对象，list集合。
+	 * @return int 1 成功，0 失败。
 	 */
 	@Override
 	public int batchSave(List<T> objects) {
@@ -119,12 +136,28 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 
 	/**
 	 * 批量保存对象，返回int总受影响条数。
-	 * @param objects 被保存对象，list集合
-	 * @param tableName 表名
-	 * @return int 1 成功，0 失败
+	 * @param objects 被保存对象，list集合。
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败。
 	 */
 	@Override
 	public int batchSave(List<T> objects, String tableName) {
+		if(objects == null || objects.size() == 0){
+			return 0;
+		}
+		List<PrimaryKeyCondition> pkeys = getPrimaryKeys(objects.get(0).getClass());
+		return batchSave(objects, pkeys, tableName);
+	}
+
+	/**
+	 * 批量保存对象，返回int总受影响条数。
+	 * @param objects 被保存对象，list集合。
+	 * @param pkeys 对象主键信息，list集合。
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败。
+	 */
+	@Override
+	public int batchSave(List<T> objects, List<PrimaryKeyCondition> pkeys, String tableName) {
 		int res = 0;
 		if(objects == null || objects.size() == 0){
 			return res;
@@ -135,13 +168,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		T object = objects.get(0);
 		String sql = parseInsert(object, tableName);
 		//解析主键
-		parsePrimateKey(object);
+		for (T obj : objects) {
+			parsePrimateKey(obj, pkeys);
+		}
 		
 		//DEBUG
 		if(debug){
 			System.out.println("batch save sql: " + sql);
-			LogsTool.logSet("sql debug", "【SAVE】batch save sql: " + sql);
-			LogsTool.logSet("sql debug", "【SAVE】batch save params: " + JSON.toJSONString(objects));
+			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】batch save sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【SAVE】batch save params: " + JSON.toJSONString(objects));
 		}
 		try {
 			int[] tmp = jdbcOperate.batchObject(sql, objects);
@@ -151,9 +186,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			//DEBUG
 			if(debug){
 				System.out.println("batch save result: " + res);
-				LogsTool.logSet("sql debug", "【SAVE】 batch save result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【SAVE】 batch save result: " + res);
 			}
-		} catch (SQLException | ReflectiveOperationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return res;
@@ -179,14 +214,8 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 				}
 			}
 			if(get && set){
-				String value = "";
-				if(f.isAnnotationPresent(PrimaryKey.class)){
-					value = f.getAnnotation(PrimaryKey.class).value();
-				}else if(f.isAnnotationPresent(Column.class)){
-					value = f.getAnnotation(PrimaryKey.class).value();
-				}
-				fname = Tools.isNullOrEmpty(value) ? fname : value;
-				sqlC += ",`"+fname+"`";
+				String oname = getOtherName(f);
+				sqlC += ",`"+oname+"`";
 				sqlV += ",:"+fname;
 			}
 		}
@@ -199,17 +228,16 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return sql;
 	}
 	
-	private void parsePrimateKey(T object){
-		List<Map<String, Object>> pks = getPrimaryKeys(object.getClass());
-		for (Map<String, Object> node : pks) {
-			switch ((PrimaryKeyType) node.get(ResultKey.KEYTYPE)) {
+	private void parsePrimateKey(T object, List<PrimaryKeyCondition> pkeys){
+		for (PrimaryKeyCondition node : pkeys) {
+			switch (node.getKeyType()) {
 			case UUID:
 				//处理主键为uuid、并且String类型的
-				if("String".equals(node.get(ResultKey.TYPE))){
-					String nameGet = "get"+node.get(ResultKey.FIELD).toString().substring(0, 1).toUpperCase()+node.get(ResultKey.FIELD).toString().substring(1);
+				if("String".equals(node.getType())){
+					String nameGet = "get" + node.getField().substring(0, 1).toUpperCase() + node.getField().substring(1);
 					Method methdGet = null;
 					Object valueGet = null;
-					String nameSet = "set"+node.get(ResultKey.FIELD).toString().substring(0, 1).toUpperCase()+node.get(ResultKey.FIELD).toString().substring(1);
+					String nameSet = "set" + node.getField().substring(0, 1).toUpperCase() + node.getField().substring(1);
 					Method methdSet = null;
 					try {
 						methdGet  = Tools.findMethod(object.getClass(), nameGet, 0)[0];
@@ -249,15 +277,31 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		String tableName = getTableName();
 		return modify(object, tableName);
 	}
+	
+	/**
+	 * 修改对象，返回int受影响条数。
+	 * @param object 被修改对象。
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败。
+	 */
+	@Override
+	public int modify(T object, String tableName) {
+		if(object == null){
+			return 0;
+		}
+		List<PrimaryKeyCondition> pkeys = getPrimaryKeys(object.getClass());
+		return modify(object, pkeys, tableName);
+	}
 
 	/**
 	 * 修改对象，返回int受影响条数。
 	 * @param object 被修改对象。
-	 * @param tableName 表名
-	 * @return int 1 成功，0 失败
+	 * @param pkeys 对象主键信息，list集合。
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败。
 	 */
 	@Override
-	public int modify(T object, String tableName) {
+	public int modify(T object, List<PrimaryKeyCondition> pkeys, String tableName) {
 		int res = 0;
 		if(object == null){
 			return res;
@@ -265,21 +309,21 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		if(Tools.isNullOrEmpty(tableName)){
 			return res;
 		}
-		String sql = parseUpdate(object, tableName);
+		String sql = parseUpdate(object, pkeys, tableName);
 		//DEBUG
 		if(debug){
 			System.out.println("modify sql: " + sql);
-			LogsTool.logSet("sql debug", "【MODIFY】 modify sql: " + sql);
-			LogsTool.logSet("sql debug", "【MODIFY】 modify params: " + JSON.toJSONString(object));
+			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 modify sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 modify params: " + JSON.toJSONString(object));
 		}
 		try {
 			res = jdbcOperate.update(sql, object);
 			//DEBUG
 			if(debug){
 				System.out.println("【MODIFY】 modify result: " + res);
-				LogsTool.logSet("sql debug", "【MODIFY】 modify result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 modify result: " + res);
 			}
-		} catch (SQLException | ReflectiveOperationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return res;
@@ -301,12 +345,28 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	
 	/**
 	 * 批量修改对象，返回int总受影响条数。
-	 * @param objects 被修改对象，list集合
-	 * @param tableName 表名
-	 * @return int 1 成功，0 失败
+	 * @param objects 被修改对象，list集合。
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败。
 	 */
 	@Override
 	public int batchModify(List<T> objects, String tableName) {
+		if(objects == null || objects.size() == 0){
+			return 0;
+		}
+		List<PrimaryKeyCondition> pkeys = getPrimaryKeys(objects.get(0).getClass());
+		return batchModify(objects, pkeys, tableName);
+	}
+	
+	/**
+	 * 批量修改对象，返回int总受影响条数。
+	 * @param objects 被修改对象，list集合。
+	 * @param pkeys 对象主键信息，list集合。
+	 * @param tableName 表名。
+	 * @return int 1 成功，0 失败。
+	 */
+	@Override
+	public int batchModify(List<T> objects, List<PrimaryKeyCondition> pkeys, String tableName) {
 		int res = 0;
 		if(objects == null || objects.size() == 0){
 			return res;
@@ -315,12 +375,12 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			return res;
 		}
 		T object = objects.get(0);
-		String sql = parseUpdate(object, tableName);
+		String sql = parseUpdate(object, pkeys, tableName);
 		//DEBUG
 		if(debug){
 			System.out.println("batch modify sql: " + sql);
-			LogsTool.logSet("sql debug", "【MODIFY】 batch modify sql: " + sql);
-			LogsTool.logSet("sql debug", "【MODIFY】 batch modify params: " + JSON.toJSONString(objects));
+			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 batch modify sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 batch modify params: " + JSON.toJSONString(objects));
 		}
 		try {
 			int[] tmp = jdbcOperate.batchObject(sql, objects);
@@ -330,21 +390,21 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			//DEBUG
 			if(debug){
 				System.out.println("batch modify result: " + res);
-				LogsTool.logSet("sql debug", "【MODIFY】 batch modify result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 batch modify result: " + res);
 			}
-		} catch (SQLException | ReflectiveOperationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return res;
 	}
 	
-	private String parseUpdate(T object, String tableName){
+	private String parseUpdate(T object, List<PrimaryKeyCondition> pkeys, String tableName){
 		String sql = "UPDATE `"+tableName+"` SET SQLS WHERE SQLW";
 		String sqlS = "";
 		String sqlW = "";
 		Field[] fields = Tools.getFields(object.getClass());
 		Method[] methods = Tools.getMethods(object.getClass());
-		//遍历属性，只有有get/set方法的属性，才加入insert.
+		//遍历属性，只有有get/set方法的属性，才加入update.
 		for (Field f : fields) {
 			String fname = f.getName();
 			boolean get = false;
@@ -358,24 +418,17 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 				}
 			}
 			if(get && set){
-				String value = "";
-				if(f.isAnnotationPresent(PrimaryKey.class)){
-					value = f.getAnnotation(PrimaryKey.class).value();
-					if(f.isAnnotationPresent(Column.class)){
-						value = f.getAnnotation(Column.class).value();
-					}
-					fname = Tools.isNullOrEmpty(value) ? fname : value;
-					sqlS += ",`"+fname+"`=:"+fname;
-					sqlW += " and `"+fname+"`=:"+fname;
-				}else{ 
-					if(f.isAnnotationPresent(Column.class)){
-						value = f.getAnnotation(Column.class).value();
-					}
-					fname = Tools.isNullOrEmpty(value) ? fname : value;
-					sqlS += ",`"+fname+"`=:"+fname;
-				}
+				String oname = getOtherName(f);
+				sqlS += ",`"+oname+"`=:"+fname;
 			}
 		}
+		
+		for (PrimaryKeyCondition condition : pkeys) {
+			String fieldName = condition.getField();
+			String otherName = getOtherName(fieldName);
+			sqlW += " and `"+otherName+"`=:"+fieldName;
+		}
+		
 		if(!Tools.isNullOrEmpty(sqlS)){
 			sql = sql.replace("SQLS", sqlS.substring(1));
 		}
@@ -456,15 +509,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("condition modify sql: " + sql);
-			LogsTool.logSet("sql debug", "【MODIFY】 condition modify sql: " + sql);
-			LogsTool.logSet("sql debug", "【MODIFY】 condition modify params: " + JSON.toJSONString(params));
+			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 condition modify sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 condition modify params: " + JSON.toJSONString(params));
 		}
 		try {
 			res = jdbcOperate.update(sql, params);
 			//DEBUG
 			if(debug){
 				System.out.println("condition modify result: " + res);
-				LogsTool.logSet("sql debug", "【MODIFY】 condition modify result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【MODIFY】 condition modify result: " + res);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -511,15 +564,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("delete sql: " + sql);
-			LogsTool.logSet("sql debug", "【DELETE】 delete sql: " + sql);
-			LogsTool.logSet("sql debug", "【DELETE】 delete params: " + JSON.toJSONString(deleteCondition));
+			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 delete sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 delete params: " + JSON.toJSONString(deleteCondition));
 		}
 		try {
 			res = jdbcOperate.update(sql, deleteCondition);
 			//DEBUG
 			if(debug){
 				System.out.println("delete result: " + res);
-				LogsTool.logSet("sql debug", "【DELETE】 delete result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 delete result: " + res);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -563,15 +616,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("wsql delete sql: " + sql);
-			LogsTool.logSet("sql debug", "【DELETE】 wsql delete sql: " + sql);
-			LogsTool.logSet("sql debug", "【DELETE】 wsql delete params: " + JSON.toJSONString(deleteCondition));
+			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 wsql delete sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 wsql delete params: " + JSON.toJSONString(deleteCondition));
 		}
 		try {
 			res = jdbcOperate.update(sql, deleteCondition);
 			//DEBUG
 			if(debug){
 				System.out.println("wsql delete result: " + res);
-				LogsTool.logSet("sql debug", "【DELETE】 wsql delete result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 wsql delete result: " + res);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -614,8 +667,8 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("batch delete sql: " + sql);
-			LogsTool.logSet("sql debug", "【DELETE】 batch delete sql: " + sql);
-			LogsTool.logSet("sql debug", "【DELETE】 batch delete params: " + JSON.toJSONString(columnValues));
+			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 batch delete sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 batch delete params: " + JSON.toJSONString(columnValues));
 		}
 		try {
 			int[] tmp = jdbcOperate.batchBasicType(sql, columnValues);
@@ -625,9 +678,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			//DEBUG
 			if(debug){
 				System.out.println("batch delete result: " + res);
-				LogsTool.logSet("sql debug", "【DELETE】 batch delete result: " + res);
+				LogsTool.logSet(logPath+"/"+tableName, "【DELETE】 batch delete result: " + res);
 			}
-		} catch (SQLException | ReflectiveOperationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return res;
@@ -799,8 +852,8 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("list find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 list find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 list find params: " + JSON.toJSONString(queryCondition));
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 list find sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 list find params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
 			Type type = getClass().getGenericSuperclass();
@@ -810,9 +863,9 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			//DEBUG
 			if(debug){
 				System.out.println("find result: " + res);
-				LogsTool.logSet("sql debug", "【QUERY】 list find result: " + JSON.toJSONString(res));
+				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 list find result: " + JSON.toJSONString(res));
 			}
-		} catch (SQLException | ReflectiveOperationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return res;
@@ -839,7 +892,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	public T findObject(Map<String, Object> queryCondition, String tableName) {
 		String wsql = " 1=1 ";
 		for (String key : queryCondition.keySet()) {
-			wsql += " and `"+key+"`=:"+key;
+			wsql += " and `"+getOtherName(key)+"`=:"+key;
 		}
 		return findObject(wsql, queryCondition, tableName);
 	}
@@ -880,8 +933,8 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("object find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 object find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 object find params: " + JSON.toJSONString(queryCondition));
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 object find sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 object find params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
 			Type type = getClass().getGenericSuperclass();
@@ -891,10 +944,10 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			//DEBUG
 			if(debug){
 				System.out.println("find result: " + res);
-				LogsTool.logSet("sql debug", "【QUERY】 object find result: " + JSON.toJSONString(res));
+				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 object find result: " + JSON.toJSONString(res));
 			}
 			return res;
-		} catch (SQLException | ReflectiveOperationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -1039,15 +1092,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("mapList find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 mapList find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 mapList find params: " + JSON.toJSONString(queryCondition));
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 mapList find sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 mapList find params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
 			res = jdbcOperate.queryMapList(sql, queryCondition);
 			//DEBUG
 			if(debug){
 				System.out.println("mapList find result: " + res);
-				LogsTool.logSet("sql debug", "【QUERY】 mapList find result: " + JSON.toJSONString(res));
+				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 mapList find result: " + JSON.toJSONString(res));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1131,15 +1184,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("map find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 map find sql: " + sql);
-			LogsTool.logSet("sql debug", "【QUERY】 map find params: " + JSON.toJSONString(queryCondition));
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 map find sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 map find params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
 			Map<String, Object> res = jdbcOperate.queryMap(sql, queryCondition);
 			//DEBUG
 			if(debug){
 				System.out.println("map find result: " + res);
-				LogsTool.logSet("sql debug", "【QUERY】 map find result: " + JSON.toJSONString(res));
+				LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 map find result: " + JSON.toJSONString(res));
 			}
 			return res;
 		} catch (SQLException e) {
@@ -1230,15 +1283,15 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		//DEBUG
 		if(debug){
 			System.out.println("size sql: " + sql);
-			LogsTool.logSet("sql debug", "【COUNT】 size sql: " + sql);
-			LogsTool.logSet("sql debug", "【COUNT】 size params: " + JSON.toJSONString(queryCondition));
+			LogsTool.logSet(logPath+"/"+tableName, "【COUNT】 size sql: " + sql);
+			LogsTool.logSet(logPath+"/"+tableName, "【COUNT】 size params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
 			res = jdbcOperate.queryObject(sql, Long.class, queryCondition);
 			//DEBUG
 			if(debug){
 				System.out.println("size result: " + res);
-				LogsTool.logSet("sql debug", "【COUNT】 size result: " + JSON.toJSONString(res));
+				LogsTool.logSet(logPath+"/"+tableName, "【COUNT】 size result: " + JSON.toJSONString(res));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1246,36 +1299,83 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		return res;
 	}
 	
-	
-	private String getTableName(){
+	//获取泛型的Class类型。
+	private Class<?> getObejctClass(){
 		Type type = getClass().getGenericSuperclass();
-		String tableName = "";
+		Class<?> clss = null;
 		try {
 			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
-			Class<?> clss = clsses[0];
+			clss = clsses[0];
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return clss;
+	}
+	
+	//获取泛型注解的table name。
+	private String getTableName(){
+		String tableName = "";
+		Class<?> clss = getObejctClass();
+		if(clss != null){
 			if(clss.isAnnotationPresent(Table.class)){
 				tableName = clss.getAnnotation(Table.class).value();
 			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
 		}
 		return tableName;
 	}
 	
-	private List<Map<String, Object>> getPrimaryKeys(Class<?> clss){
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+	//获取Class注解的PrimaryKey。
+	private List<PrimaryKeyCondition> getPrimaryKeys(Class<?> clss){
+		List<PrimaryKeyCondition> list = new ArrayList<PrimaryKeyCondition>();
 		Field[] fields = Tools.getFields(clss);
 		for (Field f : fields) {
 			if(f.isAnnotationPresent(PrimaryKey.class)){
-				Map<String, Object> node = new HashMap<String, Object>();
-				node.put(ResultKey.FIELD, f.getName());
-				node.put(ResultKey.TYPE, f.getType().getSimpleName());
-				node.put(ResultKey.KEYTYPE, f.getAnnotation(PrimaryKey.class).type());
+				PrimaryKeyCondition node = new PrimaryKeyCondition();
+				node.setField(f.getName());
+				node.setType(f.getType().getSimpleName());
+				node.setKeyType(f.getAnnotation(PrimaryKey.class).type());
 				list.add(node);
 			}
 		}
 		return list;
 	}
 
+	//获取泛型注解的字段别名。
+	private String getOtherName(String fieldName){
+		String value = fieldName;
+		try {
+			Field f = Tools.findField(getObejctClass(), fieldName);
+			if(f != null){
+				//获取字段别名，如果注解PrimaryKey、Column都有，取Column注解。
+    			if(f.isAnnotationPresent(PrimaryKey.class)){
+    				value = f.getAnnotation(PrimaryKey.class).value();
+				}
+    			if(f.isAnnotationPresent(Column.class)){
+    				value = f.getAnnotation(Column.class).value();
+				}
+    			value = Tools.isNullOrEmpty(value) ? fieldName : value;
+			}
+		} catch (ReflectiveOperationException e) {
+			e.printStackTrace();
+		}
+		return value;
+	}
+	
+	//获取泛型注解的字段别名。
+	private String getOtherName(Field f){
+		String value = "";
+		if(f != null){
+			value = f.getName();
+			//获取字段别名，如果注解PrimaryKey、Column都有，取Column注解。
+			if(f.isAnnotationPresent(PrimaryKey.class)){
+				value = f.getAnnotation(PrimaryKey.class).value();
+			}
+			if(f.isAnnotationPresent(Column.class)){
+				value = f.getAnnotation(Column.class).value();
+			}
+			value = Tools.isNullOrEmpty(value) ? f.getName() : value;
+		}
+		return value;
+	}
 
 }
