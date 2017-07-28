@@ -23,10 +23,12 @@ import com.tools.utils.LogsTool;
 import com.tools.utils.Tools;
 
 /**
- * Mysql 基本查询封装
+ * 适用于mysql， 是{@code MysqlBaseDao} 基本实现，基于  {@code JdbcOperate} 的再封装
  * @author liujian
  *
  * @param <T>
+ * @see com.tools.db.dao.MysqlBaseDao
+ * @see com.tools.jdbc.JdbcOperate
  */
 public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 

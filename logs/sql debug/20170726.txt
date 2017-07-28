@@ -1,0 +1,18 @@
+2017-07-26 03:08:14 -- 【QUERY】 mapList find sql: SELECT count(1),pid,nick FROM `s_user` WHERE  1=1  and `pid`=:pid
+2017-07-26 03:08:14 -- 【QUERY】 mapList find params: {"pid":"test"}
+2017-07-26 03:08:17 -- 【QUERY】 mapList find result: [{"count(1)":0}]
+2017-07-26 03:09:30 -- 【QUERY】 mapList find sql: SELECT count(1),pid,nick FROM `s_user` WHERE  1=1  and `pid`=:pid
+2017-07-26 03:09:30 -- 【QUERY】 mapList find params: {"pid":"test"}
+2017-07-26 03:09:30 -- 【QUERY】 mapList find result: [{"count(1)":0}]
+2017-07-26 03:09:41 -- 【QUERY】 mapList find sql: SELECT count(1),pid,nick FROM `s_user` WHERE limit 0,10
+2017-07-26 03:09:41 -- 【QUERY】 mapList find params: {"pid":"test"}
+2017-07-26 03:09:42 -- 【QUERY】 mapList find result: []
+2017-07-26 03:10:02 -- 【QUERY】 mapList find sql: SELECT count(1),pid,nick FROM `s_user` WHERE limit 0,10
+2017-07-26 03:10:02 -- 【QUERY】 mapList find params: {"pid":"test"}
+2017-07-26 03:10:03 -- 【QUERY】 mapList find result: []
+2017-07-26 03:10:10 -- 【QUERY】 mapList find sql: SELECT count(1),pid,nick FROM `s_user` WHERE 1=1 limit 0,10
+2017-07-26 03:10:10 -- 【QUERY】 mapList find params: {"pid":"test"}
+2017-07-26 03:10:10 -- 【QUERY】 mapList find result: [{"count(1)":0}]
+2017-07-26 03:10:24 -- 【QUERY】 mapList find sql: SELECT pid,nick FROM `s_user` WHERE 1=1 limit 0,10
+2017-07-26 03:10:25 -- 【QUERY】 mapList find params: {"pid":"test"}
+2017-07-26 03:10:25 -- 【QUERY】 mapList find result: []

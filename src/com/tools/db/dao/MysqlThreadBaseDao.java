@@ -6,7 +6,8 @@ package com.tools.db.dao;
  *
  * @param <T>
  */
-public interface MysqlBaseDao<T> extends AbstractBaseDao<T> {
+public interface MysqlThreadBaseDao<T> extends AbstractBaseDao<T> {
 	
+	public void exeJob(Runnable runnable);
 	
 }

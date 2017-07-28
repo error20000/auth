@@ -6,15 +6,13 @@ import java.util.Map;
 
 import com.tools.jdbc.PrimaryKeyCondition;
 
-
 /**
- * 基于  {@code JdbcOperate} 的再封装
- * 
+ * 基础接口
  * @author liujian
- * 
- * @see com.tools.jdbc.JdbcOperate
+ *
+ * @param <T>
  */
-public interface BaseDao<T> {
+public interface AbstractBaseDao<T> {
 	
 	public int save(T object);
 	public int save(T object, String tableName);
