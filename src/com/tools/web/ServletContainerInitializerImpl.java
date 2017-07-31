@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.HandlesTypes;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -18,34 +20,36 @@ import org.apache.commons.beanutils.BeanUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.tools.controller.AbstractBaseController;
+import com.tools.servlet.TestServlet;
 import com.tools.utils.Tools;
 import com.tools.web.annotation.Controller;
 import com.tools.web.annotation.RequestMapping;
 import com.tools.web.annotation.RequestMethod;
 
-@HandlesTypes(AbstractBaseController.class)
+@HandlesTypes({AbstractBaseController.class, Controller.class})
 public class ServletContainerInitializerImpl implements ServletContainerInitializer {
+	
+	public static List<RequestMappingData> mapping = null;
 
 	@Override
-	public void onStartup(Set<Class<?>> clsses, ServletContext arg1) throws ServletException {
-		System.out.println("onStartup....");
+	public void onStartup(Set<Class<?>> clsses, ServletContext context) throws ServletException {
+		context.log("ServletContainerInitializerImpl onStartup....");
 		if(clsses != null){
 			for (Class<?> clss : clsses) {
-				System.out.println(clss.getName());
+				System.out.println("Class: "+clss.getName());
 				if (!clss.isInterface() && !Modifier.isAbstract(clss.getModifiers()) &&
 						AbstractBaseController.class.isAssignableFrom(clss)) {
-					List<RequestMappingData> mappingList = parseMapping(clss);
-					createServlet(mappingList);
+					mapping = parseMapping(clss, context);
 				}
 			}
 		}
 	}
     
-	private List<RequestMappingData> parseMapping(Class<?> clss) throws ServletException{
+	private List<RequestMappingData> parseMapping(Class<?> clss, ServletContext context) throws ServletException{
 		//判断是Controller，才去解析
 		if(clss.isAnnotationPresent(Controller.class)){
 			//获取类RequestMapping
-			RequestMappingData parentData = null;
+			RequestMappingData parentData = new RequestMappingData();
 			if(clss.isAnnotationPresent(RequestMapping.class)){
 				String name = clss.getAnnotation(RequestMapping.class).name();
 				String[] value = clss.getAnnotation(RequestMapping.class).value();
@@ -55,7 +59,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 				String[] headers = clss.getAnnotation(RequestMapping.class).headers();
 				String[] consumes = clss.getAnnotation(RequestMapping.class).consumes();
 				String[] produces = clss.getAnnotation(RequestMapping.class).produces();
-				parentData = new RequestMappingData();
+				
 				parentData.setName(name);
 				parentData.setValue(value);
 				parentData.setPath(path);
@@ -65,6 +69,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 				parentData.setConsumes(consumes);
 				parentData.setProduces(produces);
 			}
+			parentData.setClss(clss);
 			
 			//获取方法RequestMapping
 			List<RequestMappingData> list = new ArrayList<>();
@@ -93,6 +98,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 						}
 					}
 					data.setValue(valueTmp.toArray(new String[valueTmp.size()]));
+					
 					//path
 					List<String> pathTmp = new ArrayList<String>();
 					for (int i = 0; i < data.getPath().length; i++) {
@@ -101,6 +107,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 						}
 					}
 					data.setPath(pathTmp.toArray(new String[pathTmp.size()]));
+					
 					//method
 					if(data.getReqMethod().length != 0){
 						List<RequestMethod> methodTmp = new ArrayList<RequestMethod>();
@@ -120,6 +127,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 					}else{
 						data.setReqMethod(method);
 					}
+					
 					//以下暂不支持
 					data.setParams(params);
 					data.setHeaders(headers);
@@ -153,16 +161,23 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 					}
 				}
 			}
-			
+			//创建servlet
+			parseServlet(context, list);
+			//保存请求映射
 			return list;
 		}
 		return null;
 	}
 	
-	private void createServlet(List<RequestMappingData> mappingList){
+	private void parseServlet(ServletContext context, List<RequestMappingData> mappingList){
 		if(mappingList != null){
-			for (RequestMappingData requestMappingData : mappingList) {
-				
+			ServletRegistration.Dynamic sr = context.addServlet("com.tools.web", RequstServlet.class);
+			for (RequestMappingData mappingData : mappingList) {
+				String[] path = mappingData.getPath().length != 0 ? mappingData.getPath() : mappingData.getValue();
+				for (int i = 0; i < path.length; i++) {
+					sr.addMapping(path[i]);
+					context.log(this.getClass().getName()+": Servlet Register Mapping ["+path[i]+"] "+mappingData.getClss().getName());
+				}
 			}
 		}
 	}

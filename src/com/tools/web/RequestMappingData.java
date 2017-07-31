@@ -11,11 +11,16 @@ public class RequestMappingData {
 	private String[] value = {};
 	private String[] path = {};
 	private RequestMethod[] reqMethod = {};
+	@Deprecated
 	private String[] params = {};
+	@Deprecated
 	private String[] headers = {};
+	@Deprecated
 	private String[] consumes = {};
+	@Deprecated
 	private String[] produces = {};
 	private Method method = null;
+	private Class<?> clss = null;
 	
 	
 	
@@ -72,6 +77,12 @@ public class RequestMappingData {
 	}
 	public void setMethod(Method method) {
 		this.method = method;
+	}
+	public Class<?> getClss() {
+		return clss;
+	}
+	public void setClss(Class<?> clss) {
+		this.clss = clss;
 	}
 
 }
