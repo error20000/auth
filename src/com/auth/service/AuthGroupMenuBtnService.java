@@ -1,13 +1,7 @@
 package com.auth.service;
 
-import com.auth.dao.util.DB;
 import com.auth.entity.AuthGroupMenuBtn;
-import com.tools.service.AbstractBaseService;
 
-public class AuthGroupMenuBtnService extends AbstractBaseService<AuthGroupMenuBtn> {
+public interface AuthGroupMenuBtnService extends BaseService<AuthGroupMenuBtn> {
 
-	@Override
-	public void initBaseDao() {
-		this.baseDao = DB.AUTH_GROUP_MENU_BTN_DAO;
-	}
 }

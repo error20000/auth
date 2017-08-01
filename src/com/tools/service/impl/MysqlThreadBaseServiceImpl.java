@@ -1,4 +1,4 @@
-package com.tools.service;
+package com.tools.service.impl;
 
 import com.tools.db.dao.MysqlThreadBaseDao;
 
@@ -9,13 +9,13 @@ import com.tools.db.dao.MysqlThreadBaseDao;
  * @param <T>
  * @see com.tools.db.dao.AbstractBaseDao
  * @see com.tools.db.dao.MysqlThreadBaseDao
- * @see com.tools.service.AbstractBaseService
+ * @see com.tools.service.impl.AbstractBaseServiceImpl
  */
-public abstract class MysqlThreadBaseService<T> extends AbstractBaseService<T> {
+public abstract class MysqlThreadBaseServiceImpl<T> extends AbstractBaseServiceImpl<T> {
 
 	protected MysqlThreadBaseDao<T> baseDao;
 	
-	public MysqlThreadBaseService() {
+	public MysqlThreadBaseServiceImpl() {
 		initBaseDao();
 	}
 

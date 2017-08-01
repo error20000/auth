@@ -79,7 +79,8 @@ public class RequstServlet extends HttpServlet {
 			
 			//判断 其他
 			//暂未实现
-			
+
+
 			if(mFlag && pFlag){
 				try {
 //					mappingData.getMethod().invoke(mappingData.getClss().newInstance(), req, resp);

@@ -1,9 +1,13 @@
 package com.tools.controller;
 
-import com.tools.web.annotation.Controller;
+import com.tools.web.annotation.RequestMapping;
 
-@Controller
 public abstract class AbstractBaseController {
 	
 
+	@RequestMapping(name="del", value={"/del","/delUser"})
+	public void del(){
+		System.out.println("del");
+	}
+	
 }

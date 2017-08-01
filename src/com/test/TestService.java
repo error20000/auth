@@ -4,9 +4,9 @@ package com.test;
 import com.auth.dao.UserDao;
 import com.auth.dao.impl.UserDaoImpl;
 import com.auth.entity.User;
-import com.tools.service.AbstractBaseService;
+import com.tools.service.impl.AbstractBaseServiceImpl;
 
-public class TestService extends AbstractBaseService<User> {
+public class TestService extends AbstractBaseServiceImpl<User> {
 
 	private static UserDao dao = new UserDaoImpl();
 	@Override
