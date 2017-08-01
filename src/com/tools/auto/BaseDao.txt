@@ -1,10 +1,10 @@
-package com.tools.auto;
+package PK;
 
 import com.tools.db.dao.MysqlBaseDao;
 
 /**
  * com.tools.auto 自动生成
- * @author liu
+ * @author liujian
  *
  * @param <T>
  */

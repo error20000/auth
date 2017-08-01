@@ -1,4 +1,4 @@
-package com.tools.auto;
+package PK;
 
 import javax.sql.DataSource;
 
@@ -7,7 +7,7 @@ import com.tools.jdbc.c3p0.C3P0PropertiesConfig;
 
 /**
  * com.tools.auto 自动生成
- * @author liu
+ * @author liujian
  *
  * @param <T>
  */

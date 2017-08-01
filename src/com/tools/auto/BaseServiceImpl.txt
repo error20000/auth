@@ -1,11 +1,11 @@
-package com.tools.auto;
+package PK;
 
-import com.auth.service.BaseService;
+import Service;
 import com.tools.service.impl.AbstractBaseServiceImpl;
 
 /**
  * com.tools.auto 自动生成
- * @author liu
+ * @author liujian
  *
  * @param <T>
  */

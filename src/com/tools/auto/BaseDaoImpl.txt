@@ -1,12 +1,12 @@
-package com.tools.auto;
+package PK;
 
-import com.auth.dao.BaseDao;
-import com.auth.dao.util.JdbcOperateManager;
+import Dao;
+import JdbcOperateManager;
 import com.tools.db.dao.impl.MysqlBaseDaoImpl;
 
 /**
  * com.tools.auto 自动生成
- * @author liu
+ * @author liujian
  *
  * @param <T>
  */
