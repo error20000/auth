@@ -35,7 +35,7 @@ public class TestAutoCreate {
 		config = new Config(baseBackge);
 	}
 
-	public void createEntity(){
+	public void createEntity(String tableName){
 		
 	}
 	
