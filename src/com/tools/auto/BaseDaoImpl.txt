@@ -5,7 +5,7 @@ import JdbcOperateManager;
 import com.tools.db.dao.impl.MysqlBaseDaoImpl;
 
 /**
- * com.tools.auto 自动生成
+ * com.tools.auto 自动生成  BaseDaoImpl
  * @author liujian
  *
  * @param <T>

@@ -193,11 +193,27 @@ public class Tools {
 		return isNullOrEmpty(value) ? null : value.trim().replace("'", "");
 	}
 	
-	
+	/**
+	 * 参数验证
+	 * @param key	参数名
+	 * @param value	参数值
+	 * @param minLength	为 0 不参与长度验证
+	 * @param maxLength	为 0 不参与最大长度验证
+	 * @return null	通过验证
+	 */
 	public static Map<String, Object> verifyParam(String key, String value, int minLength, int maxLength) {
 		return verifyParam(key, value, minLength, maxLength, false);
 	}
 	
+	/**
+	 * 参数验证
+	 * @param key	参数名
+	 * @param value	参数值
+	 * @param minLength	为 0 不参与长度验证
+	 * @param maxLength	为 0 不参与最大长度验证
+	 * @param isNumber	是否为数字
+	 * @return null	通过验证
+	 */
 	public static Map<String, Object> verifyParam(String key, String value, int minLength, int maxLength, boolean isNumber) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		
@@ -207,13 +223,22 @@ public class Tools {
 			map.put("data", "");
 			return map;
 		}
-		
+		//minLength 为 0 不参与长度验证
 		if(minLength > 0){
-			if(!(value.length() >= minLength && value.length() <= maxLength)){
-				map.put("code", Tips.ERROR210.getCode());
-				map.put("msg", Tips.ERROR210.getDesc(key));
-				map.put("data", "");
-				return map;
+			if(maxLength > 0){
+				if(!(value.length() >= minLength && value.length() <= maxLength)){
+					map.put("code", Tips.ERROR210.getCode());
+					map.put("msg", Tips.ERROR210.getDesc(key));
+					map.put("data", "");
+					return map;
+				}
+			}else{ //maxLength 为 0 不参与最大长度验证
+				if(!(value.length() >= minLength)){
+					map.put("code", Tips.ERROR210.getCode());
+					map.put("msg", Tips.ERROR210.getDesc(key));
+					map.put("data", "");
+					return map;
+				}
 			}
 		}
 		
@@ -514,7 +539,9 @@ public class Tools {
 	
 	public static void output(HttpServletRequest req, HttpServletResponse resp, String result, boolean cos) {
 		try {
-			resp.setContentType("text/html;charset=utf-8");
+			if(isNullOrEmpty(resp.getContentType())){
+				resp.setContentType("text/html;charset=utf-8");
+			}
 			if(cos){
 				resp.setHeader("Access-Control-Allow-Origin", "*");
 				resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");

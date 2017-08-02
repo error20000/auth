@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.alibaba.fastjson.JSONObject;
+import com.tools.utils.Tools;
 import com.tools.web.annotation.RequestMethod;
 
 public class RequstServlet extends HttpServlet {
@@ -86,6 +88,7 @@ public class RequstServlet extends HttpServlet {
 //					mappingData.getMethod().invoke(mappingData.getClss().newInstance(), req, resp);
 					//传入对应参数
 					//待丰富参数
+					Object res = null;
 					Class<?>[] pclss = mappingData.getMethod().getParameterTypes();
 					if(pclss.length == 0){
 						mappingData.getMethod().invoke(mappingData.getClss().newInstance());
@@ -106,7 +109,10 @@ public class RequstServlet extends HttpServlet {
 								break;
 							}
 						}
-						mappingData.getMethod().invoke(mappingData.getClss().newInstance(), params);
+						res = mappingData.getMethod().invoke(mappingData.getClss().newInstance(), params);
+					}
+					if(res != null){
+						Tools.output(resp, (String) res);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

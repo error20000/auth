@@ -4,7 +4,7 @@ import Service;
 import com.tools.service.impl.AbstractBaseServiceImpl;
 
 /**
- * com.tools.auto 自动生成
+ * com.tools.auto 自动生成  BaseServiceImpl
  * @author liujian
  *
  * @param <T>

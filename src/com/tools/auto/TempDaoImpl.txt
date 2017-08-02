@@ -7,7 +7,8 @@ import T;
  * com.tools.auto 自动生成  TempDaoImpl
  * @author liujian
  *
- */ic class TempDaoImpl extends BaseDaoImpl<T> implements TempDao {
+ */
+ public class TempDaoImpl extends BaseDaoImpl<T> implements TempDao {
 	
 	
 }
