@@ -17,6 +17,11 @@ import java.util.List;
 import com.auth.dao.UserDao;
 import com.auth.dao.impl.UserDaoImpl;
 import com.sun.corba.se.impl.encoding.CodeSetConversion.BTCConverter;
+import com.tools.auto.db.Structure;
+import com.tools.auto.db.Table;
+import com.tools.auto.db.TableManager;
+import com.tools.jdbc.PrimaryKey;
+import com.tools.jdbc.PrimaryKeyType;
 
 public class TestAutoCreate {
 	
@@ -35,8 +40,21 @@ public class TestAutoCreate {
 		config = new Config(baseBackge);
 	}
 
-	public void createEntity(String tableName){
-		
+	public void createEntity(String dbPath, String prefix, String separator){
+		String packName = config.getEntityPath(); //包路径
+		String chartset = "utf-8"; //字符集
+		TableManager manager = new TableManager(dbPath);
+		List<Table> list = manager.getDbInfo();
+		for (Table table : list) {
+			String ename = table.getTableName().replace(prefix, "");
+			ename = ename.substring(0, 1).toUpperCase() + ename.substring(1);
+			int index = 0;
+			while ((index = ename.indexOf(separator)) != -1) {
+				ename = ename.substring(0, index)+ename.substring(index+1, index+2).toUpperCase()+ename.substring(index+2);
+			}
+			table.setEntityName(ename);
+			createEntityFile(packName, table, chartset);
+		}
 	}
 	
 	public void createDao(String tempName, String fileName){
@@ -103,15 +121,13 @@ public class TestAutoCreate {
 		createServiceImpl("BaseServiceImpl", "BaseServiceImpl");
 	}
 	
-	private void createFile(String packName, String fileName, String chartset){
+	private void createEntityFile(String packName, Table table, String chartset){
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + fileName + ".java";
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator); //输出路径
-		System.out.println("in path: "+path);
-		System.out.println("out path: "+outPath);
+		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + "Temp.java";
+		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + table.getEntityName() + ".java"; //输出路径
 		BufferedWriter bw = null;
 		BufferedReader br = null;
-		File outFile = new File(outPath + File.separator + fileName + ".java");
+		File outFile = new File(outPath);
 		//如果文件已存在，并且不开启重写。结束创建。
 		if(outFile.exists() && !overWrite){
 			return;
@@ -121,15 +137,79 @@ public class TestAutoCreate {
 			pfile.mkdirs();
 		}
 		try {
-			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile),chartset)); 
+			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), chartset)); 
 			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), chartset)); 
+			List<String> content = new ArrayList<String>();
 			String line; 
 			while((line = br.readLine()) != null){ 
-				if(line.indexOf("package ") != -1){
+				//packge
+				if(line.indexOf("package PK;") != -1){
 					line = "package " + packName + ";";
 				}
-				bw.write(line); 
-				bw.newLine(); 
+				//table
+				if(line.indexOf("{Table_Name}") != -1){
+					line = line.replace("{Table_Name}", table.getTableName());
+				}
+				//Temp
+				if(line.indexOf("Temp") != -1){
+					line = line.replace("Temp", table.getEntityName());
+				}
+				content.add(line);
+			}
+			//遍历字段
+			List<Structure> sList = table.getTableInfo();
+			for (Structure structure : sList) {
+				
+				//@PrimaryKey
+				if("PRI".equals(structure.getKey())){
+					if("String".equals(structure.getType())){
+						for (int i = 0; i < content.size(); i++) {
+							if("//import".equals(content.get(i).trim())){
+								content.add(i+1, "import com.tools.jdbc.PrimaryKey;");
+							}else if("//field".equals(content.get(i).trim())){
+								content.add(i+1, "	@PrimaryKey");
+								content.add(i+2, "	private "+structure.getType()+" "+structure.getField()+";");
+							}
+						}
+					}else{
+						for (int i = 0; i < content.size(); i++) {
+							if("//import".equals(content.get(i).trim())){
+								content.add(i+1, "import com.tools.jdbc.PrimaryKey;");
+								content.add(i+2, "import com.tools.jdbc.PrimaryKeyType;");
+							}else if("//field".equals(content.get(i).trim())){
+								content.add(i+1, "	@PrimaryKey(type=PrimaryKeyType.AUTO_INCREMENT)");
+								content.add(i+2, "	private "+structure.getType()+" "+structure.getField()+";");
+							}
+						}
+					}
+				}else{
+					for (int i = 0; i < content.size(); i++) {
+						if("//field".equals(content.get(i).trim())){
+							content.add(i+1, "	private "+structure.getType()+" "+structure.getField()+";");
+						}
+					}
+				}
+				//public
+				for (int i = 0; i < content.size(); i++) {
+					if("//get set".equals(content.get(i).trim())){
+						content.add(i+1, "	public "+structure.getType()+" get"+(structure.getField().substring(0,1).toUpperCase() + structure.getField().substring(1))+"() {");
+						content.add(i+2, "		return "+structure.getField()+";");
+						content.add(i+3, "	}");
+						
+						content.add(i+4, "	public void set"+(structure.getField().substring(0,1).toUpperCase() + structure.getField().substring(1))+"("+structure.getType()+" "+structure.getField()+") {");
+						content.add(i+5, "		this."+structure.getField()+" = "+structure.getField()+";");
+						content.add(i+6, "	}");
+					}else if("//serialize".equals(content.get(i).trim())){
+						content.add(i+1, "		json.put(\""+structure.getField()+"\", "+structure.getField()+");");
+					}else if("//unserialize".equals(content.get(i).trim())){
+						content.add(i+1, "			"+structure.getField()+" = json.get"+("int".equals(structure.getType()) ? "IntValue" : "String" )+"(\""+structure.getField()+"\");");
+					}
+				}
+			}
+			
+			for (String str : content) {
+				bw.write(str);
+				bw.newLine();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -147,6 +227,7 @@ public class TestAutoCreate {
 			}
 		}
 	}
+	
 	
 	private void createDaoFile(String packName, String tempName, String fileName, String chartset){
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
@@ -276,10 +357,8 @@ public class TestAutoCreate {
 	
 	private void createDBFile(String packName, String fileName, String chartset){
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + "DB.java";
+		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + "DB.txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + "DB.java"; //输出路径
-		System.out.println("in path: "+path);
-		System.out.println("out path: "+outPath);
 		File inFile = new File(path);
 		File outFile = new File(outPath);
 		try {
@@ -329,61 +408,6 @@ public class TestAutoCreate {
 	}
 	
 	
-	private void readDaoFile(String packName, String fileName, String chartset){
-		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + fileName + ".java";//输入路径
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
-		BufferedReader br = null;
-		try {
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), chartset)); 
-			writeFile(br, outPath, chartset);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally {
-			try { 
-				if(br != null){
-					br.close(); 
-				}
-			}catch (Exception e) { 
-				e.printStackTrace(); 
-			}
-		}
-	}
-	
-	private void writeFile(BufferedReader br, String outPath, String chartset){
-		BufferedWriter bw = null;
-		File outFile = new File(outPath);
-		//如果文件已存在，并且不开启重写。结束创建。
-		if(outFile.exists() && !overWrite){
-			return;
-		}
-		File pfile = outFile.getParentFile();
-		if(!pfile.exists()){
-			pfile.mkdirs();
-		}
-		try {
-			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), chartset)); 
-			String line; 
-			while((line = br.readLine()) != null){ 
-				bw.write(line); 
-				bw.newLine(); 
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}finally {
-			try { 
-				if(br != null){
-					br.close(); 
-				}
-				if(bw != null){
-					bw.flush();
-					bw.close(); 
-				}
-			}catch (Exception e) { 
-				e.printStackTrace(); 
-			}
-		}
-	}
 	
 	public static void main(String[] args) {
 		
@@ -405,8 +429,9 @@ public class TestAutoCreate {
 //		test.createDaoImpl("TempDaoImpl", "UserDaoImpl");
 //		test.createService("TempService", "UserService");
 //		test.createServiceImpl("TempServiceImpl", "UserServiceImpl");
-		test.createDB("User");
+//		test.createDB("User");
 //		test.createDB("App");
+		test.createEntity("db.properties", "s_", "_");
 	}
 	
 }

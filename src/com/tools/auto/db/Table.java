@@ -8,6 +8,7 @@ public class Table {
 	private List<Structure> tableInfo; //表结构
 	private List<Index> indexInfo; //表索引
 	private List<List<TableData>> tableData; //表数据
+	private String entityName; //bean名称
 	
 	
 	public String getTableName() {
@@ -34,7 +35,12 @@ public class Table {
 	public void setTableData(List<List<TableData>> tableData) {
 		this.tableData = tableData;
 	}
-	
+	public String getEntityName() {
+		return entityName;
+	}
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
 	
 	
 }

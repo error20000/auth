@@ -5,6 +5,7 @@ public class Config {
 	private String basePackge = "com.test";
 	
 	//包地址
+	private static final String ENTITY_PATH = "entity";
 	private static final String DAO_PATH = "dao";
 	private static final String DAO_IMPL_PATH = "dao.impl";
 	private static final String DAO_UTIL_PATH = "dao.util";
@@ -24,6 +25,10 @@ public class Config {
 	
 	public String getBasePath(){
 		return basePackge;
+	}
+	
+	public String getEntityPath(){
+		return basePackge+"."+ENTITY_PATH;
 	}
 	
 	public String getDaoPath(){
