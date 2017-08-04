@@ -23,105 +23,202 @@ import com.tools.auto.db.Table;
 import com.tools.auto.db.TableManager;
 import com.tools.jdbc.PrimaryKey;
 import com.tools.jdbc.PrimaryKeyType;
+import com.tools.utils.Tools;
 
-public class TestAutoCreate {
+public class AutoCreateManager {
 	
-	private Config config = new Config();
+	private Config config =  new Config();
 	private boolean overWrite = true;
+	private TableManager manager = null;
+	private String dbPath = ""; //数据库配置
+	private String prefix = ""; //数据表前缀
+	private String separator = ""; //数据表分隔符
+	private String chartset = "utf-8";//文件字符集
 	
-	public TestAutoCreate(){
+	public AutoCreateManager(){
 		
 	}
-
-	public TestAutoCreate(Config config){
-		this.config = config;
+	
+	public AutoCreateManager(String packge, String dbPath){
+		if(!Tools.isNullOrEmpty(packge)){
+			config = new Config(packge);
+		}
+		if(!Tools.isNullOrEmpty(dbPath)){
+			this.dbPath = dbPath;
+			manager = new TableManager(dbPath);
+		}
 	}
 	
-	public TestAutoCreate(String baseBackge){
-		config = new Config(baseBackge);
+	public AutoCreateManager(String packge, String dbPath, String prefix, String separator){
+		if(!Tools.isNullOrEmpty(packge)){
+			config = new Config(packge);
+		}
+		if(!Tools.isNullOrEmpty(dbPath)){
+			this.dbPath = dbPath;
+			manager = new TableManager(dbPath);
+		}
+		this.prefix = prefix;
+		this.separator = separator;
 	}
+	
+	public void setPackge(String packge){
+		if(!Tools.isNullOrEmpty(packge)){
+			config = new Config(packge);
+		}
+	} 
+	
+	public void setDbPath(String dbPath){
+		if(!Tools.isNullOrEmpty(dbPath)){
+			this.dbPath = dbPath;
+			manager = new TableManager(dbPath);
+		}
+	}
+	
+	public void setPrefix(String prefix){
+		this.prefix = prefix;
+	} 
+	
+	public void setSeparator(String separator){
+		this.separator = separator;
+	} 
+	
+	public void setChartset(String chartset){
+		this.chartset = chartset;
+	} 
+	
+	public void start(){
+		if(manager == null){
+			return;
+		}
+		createBase();
+		createEntity();
+	} 
 
-	public void createEntity(String dbPath, String prefix, String separator){
-		String packName = config.getEntityPath(); //包路径
-		String chartset = "utf-8"; //字符集
-		TableManager manager = new TableManager(dbPath);
+	public void createEntity(){
+		if(manager == null){
+			return;
+		}
+		//解析数据库
 		List<Table> list = manager.getDbInfo();
 		for (Table table : list) {
 			String ename = table.getTableName().replace(prefix, "");
 			ename = ename.substring(0, 1).toUpperCase() + ename.substring(1);
-			int index = 0;
-			while ((index = ename.indexOf(separator)) != -1) {
-				ename = ename.substring(0, index)+ename.substring(index+1, index+2).toUpperCase()+ename.substring(index+2);
+			if(!Tools.isNullOrEmpty(separator)){
+				int index = 0;
+				while ((index = ename.indexOf(separator)) != -1) {
+					ename = ename.substring(0, index)+ename.substring(index+1, index+2).toUpperCase()+ename.substring(index+2);
+				}
 			}
 			table.setEntityName(ename);
-			createEntityFile(packName, table, chartset);
+			createEntity(table);
 		}
 	}
 	
+	/**
+	 * 
+	 * @param table 表信息
+	 */
+	public void createEntity(Table table){
+		String packName = config.getEntityPath(); //包路径
+		String eName = table.getEntityName();
+		//创建entity
+		createEntityFile(packName, table, chartset);
+		
+		//创建dao
+		createDao("TempDao", eName + "Dao");
+		createDaoImpl("TempDaoImpl", eName + "DaoImpl");
+		createDB(eName);
+		//创建service
+		createService("TempService", eName + "Service");
+		createServiceImpl("TempServiceImpl", eName + "ServiceImpl");
+		//创建controller
+		createController("TempController", eName + "Controller");
+	}
+	
+	/**
+	 * 创建dao层接口
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createDao(String tempName, String fileName){
 		String packName = config.getDaoPath(); //包路径
-//		String tempName = "BaseDao"; //dao层接口,模版名
-//		String fileName = "BaseDao"; //dao层接口
-		String chartset = "utf-8"; //字符集
 		createDaoFile(packName, tempName, fileName, chartset);
 	}
 	
+	/**
+	 * 创建dao层实现
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createDaoImpl(String tempName, String fileName){
 		String packName = config.getDaoImplPath(); //包路径
-//		String tempName = "BaseDaoImpl"; //dao层实现,模版名
-//		String fileName = "BaseDaoImpl"; //dao层实现
-		String chartset = "utf-8"; //字符集
 		createDaoFile(packName, tempName, fileName, chartset);
 	}
 
+	/**
+	 * 创建dao层工具
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createDaoUtil(String tempName, String fileName){
 		String packName = config.getDaoUtilPath(); //包路径
-//		String tempName = "JdbcOperateManager"; //dao层工具,模版名
-//		String fileName = "JdbcOperateManager"; //dao层工具
-		String chartset = "utf-8"; //字符集
 		createDaoFile(packName, tempName, fileName, chartset);
 	}
 	
+	/**
+	 * 注册dao层到DB。 例如：public static final UserDao USER_DAO = new UserDaoImpl();
+	 * @param fileName 生成文件名
+	 */
 	public void createDB(String fileName){
 		String packName = config.getDaoUtilPath(); //包路径
-//		String tempName = "JdbcOperateManager"; //dao层工具,模版名
-//		String fileName = "JdbcOperateManager"; //dao层工具
-		String chartset = "utf-8"; //字符集
 		createDBFile(packName, fileName, chartset);
 	}
 
+	/**
+	 * 创建service层接口
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createService(String tempName, String fileName){
 		String packName = config.getServicePath(); //包路径
-//		String tempName = "BaseService"; //service层接口,模版名
-//		String fileName = "BaseService"; //service层接口
-		String chartset = "utf-8"; //字符集
 		createServiceFile(packName, tempName, fileName, chartset);
 	}
 	
+	/**
+	 * 创建service层实现
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createServiceImpl(String tempName, String fileName){
 		String packName = config.getServiceImplPath(); //包路径
-//		String tempName = "BaseServiceImpl"; //service层实现,模版名
-//		String fileName = "BaseServiceImpl"; //service层实现
-		String chartset = "utf-8"; //字符集
 		createServiceFile(packName, tempName, fileName, chartset);
 	}
 
+	/**
+	 * 创建控制层，以Servlet模式
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createServlet(String tempName, String fileName){
 		String packName = config.getServletPath(); //包路径
-//		String tempName = "TempServlet"; //servlet层实现,模版名
-//		String fileName = "TempServlet"; //servlet层实现
-		String chartset = "utf-8"; //字符集
 		createServletFile(packName, tempName, fileName, chartset);
 	}
 
+	/**
+	 * 创建控制层，以Controller模式
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createController(String tempName, String fileName){
 		String packName = config.getControllerPath(); //包路径
-//		String tempName = "TempController"; //controller层实现,模版名
-//		String fileName = "TempController"; //controller层实现
-		String chartset = "utf-8"; //字符集
 		createControllerFile(packName, tempName, fileName, chartset);
 	}
 	
+	/**
+	 * 创建基本信息。包括：BaseDao、BaseDaoImpl、JdbcOperateManager、BaseService、BaseServiceImpl
+	 * @param tempName 模版名
+	 * @param fileName 生成文件名
+	 */
 	public void createBase(){
 		createDao("BaseDao", "BaseDao");
 		createDaoImpl("BaseDaoImpl", "BaseDaoImpl");
@@ -275,14 +372,17 @@ public class TestAutoCreate {
 					line = "import " + packName.replace("impl", dn) + ";"; //import xxxx.dao.xxxDao
 				}else if(line.indexOf("import T;") != -1){
 					isBean = true;
-					line = "import " + packName.replace("dao.impl", "entity."+en) + ";"; //import xxxx.entity.xxx
+					line = "import " + packName.replace(".dao", "").replace(".impl", "")+".entity."+en + ";"; //import xxxx.entity.xxx
 				}else{
 					if(isBean){
 						line = line.replace("<T>", "<"+en+">");
 						line = line.replace("Temp", en);
 					}
 				}
-				
+				//db file
+				if(line.indexOf("{dbPath}") != -1){
+					line = line.replace("{dbPath}", dbPath);
+				}
 				bw.write(line); 
 				bw.newLine(); 
 			}
@@ -337,7 +437,7 @@ public class TestAutoCreate {
 					line = "import " + packName.replace("impl", sn) + ";"; //import xxxx.service.xxxService
 				}else if(line.indexOf("import T;") != -1){
 					isBean = true;
-					line = "import " + packName.replace("service.impl", "entity."+en) + ";";  //import xxxx.entity.xxx
+					line = "import " + packName.replace(".service", "").replace(".impl", "")+".entity."+en + ";";  //import xxxx.entity.xxx
 				}else if(line.indexOf("DB.TEMP_DAO") != -1){
 					line = line.replace("DB.TEMP_DAO", "DB."+en.toUpperCase()+"_DAO");
 				}else{
@@ -399,18 +499,26 @@ public class TestAutoCreate {
 				}
 				rafWrite.seek(0);
 			}
-			
-			for (int i = 0; i < content.size(); i++) {
-				if("//import".equals(content.get(i).trim())){
-					content.add(i+1, "import "+ packName.replace("util", "") + fileName+"Dao;");
-					content.add(i+1, "import "+ packName.replace("util", "impl") + fileName+"DaoImpl;");
-				}else if("//dao".equals(content.get(i).trim())){
-					content.add(i+1, "	public static final "+fileName+"Dao "+fileName.toUpperCase()+"_DAO = new "+fileName+"DaoImpl();");
+			//判断dao层是否已注册
+			boolean flag = true;
+			for (String str : content) {
+				if(str.indexOf(fileName.toUpperCase()+"_DAO") != -1){
+					flag = false;
 				}
 			}
-			for (String str : content) {
-				rafWrite.write(str.getBytes());
-				rafWrite.write("\n".getBytes());
+			if(flag){
+				for (int i = 0; i < content.size(); i++) {
+					if("//import".equals(content.get(i).trim())){
+						content.add(i+1, "import "+ packName.replace("util", "") + fileName+"Dao;");
+						content.add(i+1, "import "+ packName.replace("util", "impl.") + fileName+"DaoImpl;");
+					}else if("//dao".equals(content.get(i).trim())){
+						content.add(i+1, "	public static final "+fileName+"Dao "+fileName.toUpperCase()+"_DAO = new "+fileName+"DaoImpl();");
+					}
+				}
+				for (String str : content) {
+					rafWrite.write(str.getBytes());
+					rafWrite.write("\n".getBytes());
+				}
 			}
 			rafWrite.close();
 		} catch (Exception e) {
@@ -483,7 +591,7 @@ public class TestAutoCreate {
 	
 	private void createControllerFile(String packName, String tempName, String fileName, String chartset){
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".java";
+		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
 		BufferedWriter bw = null;
 		BufferedReader br = null;
@@ -555,17 +663,8 @@ public class TestAutoCreate {
 //        }
 
 		
-		TestAutoCreate test =  new TestAutoCreate("com.testAuto");
-//		test.createBase();
-		
-//		test.createDao("TempDao", "UserDao");
-//		test.createDaoImpl("TempDaoImpl", "UserDaoImpl");
-//		test.createService("TempService", "UserService");
-//		test.createServiceImpl("TempServiceImpl", "UserServiceImpl");
-//		test.createDB("User");
-//		test.createDB("App");
-//		test.createEntity("db.properties", "s_", "_");
-		test.createController("TempController", "UserController");
+		AutoCreateManager test =  new AutoCreateManager("com.testAuto2", "db.properties");
+		test.start();
 	}
 	
 }

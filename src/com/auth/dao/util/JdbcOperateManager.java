@@ -1,5 +1,7 @@
 package com.auth.dao.util;
 
+import java.io.File;
+
 import javax.sql.DataSource;
 
 import com.tools.jdbc.JdbcOperate;
@@ -11,8 +13,13 @@ public class JdbcOperateManager {
 	private static JdbcOperate jdbcOperate = null;
 	
 	static{
-		String dbpath = "db.properties";
-		dataSource = new C3P0PropertiesConfig(dbpath).getDataSource();
+		String dbPath = "db.properties";
+		File file = new File(dbPath);
+		if(file.exists()){
+			dataSource = new C3P0PropertiesConfig(file).getDataSource();
+		}else{
+			dataSource = new C3P0PropertiesConfig(dbPath).getDataSource();
+		}
 		jdbcOperate = new JdbcOperate(dataSource);
 	}
 	

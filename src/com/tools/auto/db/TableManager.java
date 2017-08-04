@@ -20,8 +20,13 @@ public class TableManager {
 	
 	
 	public TableManager(String dbpath){
-		dataSource = new C3P0PropertiesConfig(dbpath).getDataSource();
-		jdbcOperate = new JdbcOperate(dataSource);
+		File file = new File(dbpath);
+		if(file.exists()){
+			new TableManager(file);
+		}else{
+			dataSource = new C3P0PropertiesConfig(dbpath).getDataSource();
+			jdbcOperate = new JdbcOperate(dataSource);
+		}
 	}
 	
 	public TableManager(File file){
@@ -157,6 +162,13 @@ public class TableManager {
 		
 		String[] tmp = "0001000100021001|90001|小小邮差Ⅰ|1-1N|夜战||".split("\\|", -1);
 		System.out.println(tmp.length);
+		
+		String basePackge = "  com.auto.   ";
+		basePackge = basePackge.trim();
+		if(basePackge.endsWith(".")){
+			basePackge = basePackge.substring(0, basePackge.length() - 1 );
+		}
+		System.out.println(basePackge);
 	}
 	
 }

@@ -1,6 +1,7 @@
 package com.auth.entity;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tools.annotation.Excel;
 import com.tools.jdbc.PrimaryKey;
 import com.tools.jdbc.Table;
 
@@ -8,6 +9,7 @@ import com.tools.jdbc.Table;
 public class Menu {
 
 	@PrimaryKey
+	@Excel(name="ss", sort= 0)
 	private String pid;
 	private String appId;
 	private String parentId;

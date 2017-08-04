@@ -2,7 +2,7 @@ package com.tools.auto;
 
 public class Config {
 	
-	private String basePackge = "com.test";
+	private String basePackge = "com.auto";
 	
 	//包地址
 	private static final String ENTITY_PATH = "entity";
@@ -20,6 +20,10 @@ public class Config {
 	}
 	
 	public Config(String basePackge){
+		basePackge = basePackge.trim();
+		if(basePackge.endsWith(".")){
+			basePackge = basePackge.substring(0, basePackge.length() - 1);
+		}
 		this.basePackge = basePackge;
 	}
 	
