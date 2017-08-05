@@ -1,5 +1,9 @@
 package com.tools.web;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -40,7 +44,6 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 		if(clsses != null){
 			//解析path
 			for (Class<?> clss : clsses) {
-				System.out.println("Class: "+clss.getName());
 				//继承AbstractBaseController的类、或者注解为Controller的类，才加入Servlet。
 				if (!clss.isInterface() && !Modifier.isAbstract(clss.getModifiers()) &&
 						AbstractBaseController.class.isAssignableFrom(clss) || clss.isAnnotationPresent(Controller.class)) {
@@ -185,14 +188,61 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 	
 	private void parseServlet(List<RequestMappingData> mappingList, ServletContext context){
 		if(mappingList != null){
+			List<String> pathList = new ArrayList<String>();
+			//servlet
 			ServletRegistration.Dynamic sr = context.addServlet("com.tools.web", RequstServlet.class);
+			sr.setAsyncSupported(true); //开启异步
+			context.log("AsyncSupported true...");
 			for (RequestMappingData mappingData : mappingList) {
 				String[] path = mappingData.getPath().length != 0 ? mappingData.getPath() : mappingData.getValue();
 				for (int i = 0; i < path.length; i++) {
 					sr.addMapping(path[i]);
+					pathList.add(path[i]);
 					context.log(this.getClass().getName()+": Servlet Register Mapping ["+path[i]+"] "+mappingData.getClss().getName());
 				}
 			}
+			//创建servlet开关
+			/*Thread thread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					String rpath = Tools.getBsaePath() + "allows/req.txt";
+					List<String> content = new ArrayList<String>();
+					File file = new File(rpath);
+					if(file.exists()){
+						try {
+							BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+							String line;
+							while ((line = reader.readLine()) != null) {
+								content.add(line);
+							}
+							//修改
+							boolean flag = true;
+							for (String str1 : pathList) {
+								flag = true;
+								for (String str2 : content) {
+									if(str1.equals(str2.split(" : ")[0].trim())){
+										flag = false;
+										break;
+									}
+								}
+								if(flag){
+									content.add(str1 + " : true");
+								}
+							}
+							reader.close();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}else{
+						for (String str : pathList) {
+							content.add(str + " : true");
+						}
+					}
+					//写入
+					Tools.fileWrite(file, content);
+				}
+			});
+			thread.start();*/
 		}
 	}
 	

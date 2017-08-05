@@ -247,13 +247,14 @@ public class TranslateSQL {
     		Method[] methods = clazz.getDeclaredMethods();  
     		for (Field f : fields) {
     			String key = f.getName();
-    			//获取字段别名，如果注解PrimaryKey、Column都有，取Column注解。
-    			if(f.isAnnotationPresent(PrimaryKey.class)){
-    				key = f.getAnnotation(PrimaryKey.class).value();
-				}
+    			//获取字段别名，如果注解PrimaryKey、Column都有，取Column注解。都没有取自身。
     			if(f.isAnnotationPresent(Column.class)){
 					key = f.getAnnotation(Column.class).value();
+				}else if(f.isAnnotationPresent(PrimaryKey.class)){
+    				key = f.getAnnotation(PrimaryKey.class).value();
 				}
+    			key = Tools.isNullOrEmpty(key) ? f.getName() : key;
+    			
     			if(rowMap.get(key) != null){
     				for (Method method : methods) {
     					if(method.getName().replace("set", "").toLowerCase().equals(f.getName().toLowerCase())){

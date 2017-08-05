@@ -1367,11 +1367,10 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			Field f = Tools.findField(getObejctClass(), fieldName);
 			if(f != null){
 				//获取字段别名，如果注解PrimaryKey、Column都有，取Column注解。
-    			if(f.isAnnotationPresent(PrimaryKey.class)){
-    				value = f.getAnnotation(PrimaryKey.class).value();
-				}
     			if(f.isAnnotationPresent(Column.class)){
     				value = f.getAnnotation(Column.class).value();
+				}else if(f.isAnnotationPresent(PrimaryKey.class)){
+    				value = f.getAnnotation(PrimaryKey.class).value();
 				}
     			value = Tools.isNullOrEmpty(value) ? fieldName : value;
 			}
@@ -1387,11 +1386,10 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 		if(f != null){
 			value = f.getName();
 			//获取字段别名，如果注解PrimaryKey、Column都有，取Column注解。
-			if(f.isAnnotationPresent(PrimaryKey.class)){
-				value = f.getAnnotation(PrimaryKey.class).value();
-			}
 			if(f.isAnnotationPresent(Column.class)){
 				value = f.getAnnotation(Column.class).value();
+			}else if(f.isAnnotationPresent(PrimaryKey.class)){
+				value = f.getAnnotation(PrimaryKey.class).value();
 			}
 			value = Tools.isNullOrEmpty(value) ? f.getName() : value;
 		}

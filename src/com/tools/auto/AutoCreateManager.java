@@ -4,27 +4,30 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.auth.dao.UserDao;
-import com.auth.dao.impl.UserDaoImpl;
-import com.sun.corba.se.impl.encoding.CodeSetConversion.BTCConverter;
-import com.tools.annotation.Excel;
 import com.tools.auto.db.Structure;
 import com.tools.auto.db.Table;
 import com.tools.auto.db.TableManager;
-import com.tools.jdbc.PrimaryKey;
-import com.tools.jdbc.PrimaryKeyType;
 import com.tools.utils.Tools;
 
+/**
+ * 自动生成管理器。需要配置的参数：
+ * <p>{@code packge} 包路径
+ * <p>{@code dbPath} 数据库配置文件（必填）
+ * <p>{@code prefix} 表前缀
+ * <p>{@code separator} 表分隔符
+ * <p>{@code chartset} 生成文件字符集，默认“utf-8”
+ * @author liujian
+ *
+ * @see com.tools.auto.Config
+ * @see com.tools.auto.db.TableManager
+ */
 public class AutoCreateManager {
 	
 	private Config config =  new Config();
@@ -275,7 +278,7 @@ public class AutoCreateManager {
 								content.add(i+2, "import com.tools.jdbc.PrimaryKeyType;");
 							}else if("//field".equals(content.get(i).trim())){
 								content.add(i+1, "	@PrimaryKey(type=PrimaryKeyType.AUTO_INCREMENT)");
-								content.add(i+2, "	@Excel(name=\""+structure.getComment()+"\", sort="+m+")");
+								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
 								content.add(i+3, "	private "+structure.getType()+" "+structure.getField()+";");
 							}
 						}
@@ -285,7 +288,7 @@ public class AutoCreateManager {
 								content.add(i+1, "import com.tools.jdbc.PrimaryKey;");
 							}else if("//field".equals(content.get(i).trim())){
 								content.add(i+1, "	@PrimaryKey");
-								content.add(i+2, "	@Excel(name=\""+structure.getComment()+"\", sort="+m+")");
+								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
 								content.add(i+3, "	private "+structure.getType()+" "+structure.getField()+";");
 							}
 						}
@@ -293,7 +296,7 @@ public class AutoCreateManager {
 				}else{
 					for (int i = 0; i < content.size(); i++) {
 						if("//field".equals(content.get(i).trim())){
-							content.add(i+1, "	@Excel(name=\""+structure.getComment()+"\", sort="+m+")");
+							content.add(i+1, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
 							content.add(i+2, "	private "+structure.getType()+" "+structure.getField()+";");
 						}
 					}
@@ -663,7 +666,7 @@ public class AutoCreateManager {
 //        }
 
 		
-		AutoCreateManager test =  new AutoCreateManager("com.testAuto2", "db.properties");
+		AutoCreateManager test =  new AutoCreateManager("com.testAuto", "db.properties", "s_", "_");
 		test.start();
 	}
 	

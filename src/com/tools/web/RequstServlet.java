@@ -1,14 +1,16 @@
 package com.tools.web;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.alibaba.fastjson.JSONObject;
 import com.tools.utils.Tools;
 import com.tools.web.annotation.RequestMethod;
 
@@ -51,9 +53,28 @@ public class RequstServlet extends HttpServlet {
 	}
 
 	private void doDispatch(HttpServletRequest req, HttpServletResponse resp){
+		AsyncContext async = req.startAsync(req,resp);  
+		async.setTimeout(30*1000);
+		async.start(new Runnable() {
+			@Override
+			public void run() {
+				dispatch(req, resp);
+			}
+		});
+		
+	}
+	
+	private void dispatch(HttpServletRequest req, HttpServletResponse resp){
 		List<RequestMappingData> mapping = ServletContainerInitializerImpl.mapping;
 		String reqPath = req.getRequestURI().replace(req.getContextPath(), "");
 		String reqMethod = req.getMethod();
+		//allow
+		/*String rpath = Tools.getBsaePath() + "allows/req.txt";
+		List<String> content = new ArrayList<String>();
+		File file = new File(rpath);
+		if(file.exists()){
+			//TODO
+		}*/
 		for (RequestMappingData mappingData : mapping) {
 			//判断 requset method
 			RequestMethod[] methods = mappingData.getReqMethod();

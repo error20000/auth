@@ -1,5 +1,6 @@
 package com.tools.utils;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,6 +65,8 @@ public class Tools {
 	private static Map<String, Field[]> fieldArrays = new HashMap<String ,Field[]>();
 	private static Map<String, Method[]> methodArrays = new HashMap<String ,Method[]>();
 	
+	//写文件线程池
+	private static ExecutorService service = Executors.newFixedThreadPool(1);
 	
 	public static String getAuthUser() {
 		return AUTH_USER_SESSION;
@@ -625,6 +630,45 @@ public class Tools {
         }
         return base+"/";
     }
+	
+	/**
+	 * 获取项目地址
+	 */
+	public static String getBsaePath() {
+		String base = Tools.class.getResource("/").getPath().replace("/build/classes/", "").replace("/WEB-INF/classes/", "");
+        return base+"/";
+    }
+	
+	/**
+	 * 写文件
+	 * @param file	待写入文件
+	 * @param content 待写入内容
+	 */
+	public static void fileWrite(File file, List<String> content) {
+		service.submit(new Runnable() {
+			@Override
+			public void run() {
+				String charset = "utf-8";
+				OutputStream out;
+				try {
+					//file.getParentFile().mkdirs();
+					File pfile = file.getParentFile();
+					if(!pfile.exists()){
+						pfile.mkdirs();
+					}
+					out = new FileOutputStream(file, true);
+					for (int i = 0; i < content.size(); i++) {
+						out.write(content.get(i).getBytes(charset));
+						out.write("\n".getBytes());
+					}
+					out.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	
 	
 	
 	/**

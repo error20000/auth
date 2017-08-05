@@ -279,16 +279,16 @@ public class TempController{
 		}
 		
 		//执行
+		Temp entity = new Temp();
 		Map<String, Object> condition = Tools.getReqParamsToMap(req);
 		List<Temp> res = service.findList(condition);
-		String name = "";
+		String name = entity.getClass().getSimpleName().toLowerCase();
 		resp.addHeader("Content-Disposition","attachment;filename="+name+".csv");
 		// response.addHeader("Content-Length", "" + JSONArray.fromObject(list).toString().getBytes().length);
 		resp.setContentType("application/octet-stream;charset=utf-8");
 		try {
 			OutputStream toClient = new BufferedOutputStream(resp.getOutputStream());
 			//header
-			Temp entity = new Temp();
 			List<Map<String, Object>> excels = new ArrayList<Map<String, Object>>(); //获取导出字段
 			Field[] fields = Tools.getFields(entity.getClass());
 			for (Field f : fields) {
@@ -316,12 +316,12 @@ public class TempController{
 			String head = "";
 			for (int i = 0; i < excels.size(); i++) {
 				if(Tools.isNullOrEmpty(headers)){
-					head += "," + excels.get(i).get("name");
+					head += "," + "\"" + (excels.get(i).get("name") == null ? "" :excels.get(i).get("name").toString().replace("\"", "\"\""))+ "\"";
 				}else{
 					String[] hs = headers.replace("，", ",").split(",");
 					for (String tmp : hs) {
 						if(tmp.equals(excels.get(i).get("field"))){
-							head += "," + excels.get(i).get("name");
+							head += "," + "\"" + (excels.get(i).get("name") == null ? "" :excels.get(i).get("name").toString().replace("\"", "\"\""))+ "\"";
 						}
 					}
 				}
