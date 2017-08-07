@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 public class LogsTool {
 
 	private static ExecutorService service = Executors.newFixedThreadPool(20);
+	private static Object lock = new Object();
 	
 	/**
 	 * 写日志，保存为文件
@@ -59,7 +60,7 @@ public class LogsTool {
 		service.submit(new Runnable() {
 			@Override
 			public void run() {
-				synchronized (file) {
+				synchronized (lock) {
 					OutputStream out;
 					try {
 						//file.getParentFile().mkdirs();

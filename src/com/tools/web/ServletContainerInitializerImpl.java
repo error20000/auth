@@ -1,11 +1,14 @@
 package com.tools.web;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -202,47 +205,70 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 				}
 			}
 			//创建servlet开关
-			/*Thread thread = new Thread(new Runnable() {
+			Thread thread = new Thread(new Runnable() {
 				@Override
 				public void run() {
-					String rpath = Tools.getBsaePath() + "allows/req.txt";
+					String rpath = Tools.getBsaePath() + AllowReq.getFilePath();
 					List<String> content = new ArrayList<String>();
 					File file = new File(rpath);
 					if(file.exists()){
-						try {
-							BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
-							String line;
-							while ((line = reader.readLine()) != null) {
-								content.add(line);
-							}
-							//修改
-							boolean flag = true;
-							for (String str1 : pathList) {
-								flag = true;
-								for (String str2 : content) {
-									if(str1.equals(str2.split(" : ")[0].trim())){
-										flag = false;
-										break;
-									}
-								}
-								if(flag){
-									content.add(str1 + " : true");
+						content = Tools.fileReader(file);
+						//修改
+						boolean flag = true;
+						for (String str1 : pathList) {
+							flag = true;
+							//判断如果原文件已存在该path，则不加入写内容。
+							for (String str2 : content) {
+								if(str1.equals(str2.split(" : ")[0].trim())){
+									flag = false;
+									break;
 								}
 							}
-							reader.close();
-						} catch (Exception e) {
-							e.printStackTrace();
+							if(flag){
+								content.add(str1 + " : true");
+							}
 						}
 					}else{
 						for (String str : pathList) {
 							content.add(str + " : true");
 						}
 					}
-					//写入
-					Tools.fileWrite(file, content);
+					//写入文件
+					Tools.fileWrite(file, content, false);
+					//写入内存
+					for (String str : content) {
+						AllowReq.setContent(str.split(":")[0].trim(), str.split(":")[1].trim());
+					}
+					//监控文件变化
+					try {
+						WatchService watcher = FileSystems.getDefault().newWatchService();
+						Path dir = file.getParentFile().toPath();
+						while (true) {
+							WatchKey key = dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+							List<WatchEvent<?>> watchEvents = key.pollEvents();  
+							for(WatchEvent<?> event : watchEvents){  
+								//TODO 根据事件类型采取不同的操作。。。。。。。  
+								context.log(this.getClass().getName()+": ["+event.context()+"]文件发生了["+event.kind()+"]事件"); 
+								//如果文件变了，重新载入
+								List<String> change = Tools.fileReader(file);
+								for (String str : change) {
+									String[] tmp = str.split(":");
+									if(tmp.length > 1){
+										AllowReq.setContent(tmp[0].trim(), tmp[1].trim());
+									}
+								}
+							}  
+							key.reset();
+							//10s检测一次
+							Thread.sleep(10 * 1000);
+						}
+
+					} catch (Exception e) {
+					    System.err.println(e);
+					}
 				}
 			});
-			thread.start();*/
+			thread.start();
 		}
 	}
 	

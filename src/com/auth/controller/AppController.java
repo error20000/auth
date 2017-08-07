@@ -1,8 +1,10 @@
 package com.auth.controller;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +18,7 @@ import com.auth.service.impl.AppServiceImpl;
 import com.tools.utils.ResultKey;
 import com.tools.utils.Tips;
 import com.tools.utils.Tools;
+import com.tools.web.AllowReq;
 import com.tools.web.annotation.Controller;
 import com.tools.web.annotation.RequestMapping;
 
@@ -59,6 +62,48 @@ public class AppController{
 		//TODO 需要自己修改验证
 		
 		return null;
+	}
+	
+	//检测攻击
+	private void checkAttacks(HttpServletRequest req){
+		//TODO 需要自己修改验证
+		String content = "";
+		
+		/*// Regular expressions that indicate attacks
+		var inputAttacks = [
+		    { title: "SQL Batch Injection", regex: /'.*;/},
+		    { title: "SQL Or Injection", regex: /'.*or/i},
+		    { title: "SQL And Injection", regex: /'.*and/i},    
+		    { title: "File Inclusion", regex: /\.\.\//},
+		    { title: "File Inclusion", regex: /^\//}
+		];*/
+
+		/*// Check all GET queries
+	    for (key in req.query)
+	        if (exemptGet.indexOf(req.path + ":" + key) === -1)  // Don't check exempt fields
+	            checkInputAttacks('query parameter "' + key + '"', req.query[key], req, res);
+	     
+	    // Check all POST data
+	    for (key in req.body)
+	        if (exemptPost.indexOf(req.path + ":" + key) === -1)  // Don't check exempt fields  
+	            checkInputAttacks('post parameter "' + key + '"', req.body[key], req, res);
+	 
+	    // Check all cookies
+	    for (key in req.cookies)
+	        if (exemptCookie.indexOf(req.path + ":" + key) === -1)  // Don't check exempt fields    
+	            checkInputAttacks('cookie "' + key + '"', req.cookies[key], req, res);
+	     */
+
+/*类型                     时间                                                                                 攻击 IP            路径
+
+
+无效路径  2015-11-27T03:43:03.481Z  174.37.31.187  /badPath.html  */
+
+		//写入文件
+		String rpath = Tools.getBsaePath() + "attacks/" + getClass().getName();
+		File file = new File(rpath);
+		Tools.fileWrite(file, content);
+		return;
 	}
 	
 	

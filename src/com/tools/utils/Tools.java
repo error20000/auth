@@ -1,10 +1,12 @@
 package com.tools.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -29,6 +31,8 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,7 +70,8 @@ public class Tools {
 	private static Map<String, Method[]> methodArrays = new HashMap<String ,Method[]>();
 	
 	//写文件线程池
-	private static ExecutorService service = Executors.newFixedThreadPool(1);
+	private static ExecutorService service = Executors.newFixedThreadPool(10);
+	private static Lock lock = new ReentrantLock();
 	
 	public static String getAuthUser() {
 		return AUTH_USER_SESSION;
@@ -644,10 +649,23 @@ public class Tools {
 	 * @param file	待写入文件
 	 * @param content 待写入内容
 	 */
-	public static void fileWrite(File file, List<String> content) {
+	public static void fileWrite(File file, String content) {
+		List<String> list = new ArrayList<String>();
+		list.add(content);
+		fileWrite(file, list, true);
+	}
+	
+	/**
+	 * 写文件
+	 * @param file	待写入文件
+	 * @param content 待写入内容
+	 * @param append  if true, then bytes will be written to the end of the file rather than the beginning
+	 */
+	public static void fileWrite(File file, List<String> content, boolean append) {
 		service.submit(new Runnable() {
 			@Override
 			public void run() {
+				lock.lock();
 				String charset = "utf-8";
 				OutputStream out;
 				try {
@@ -656,7 +674,7 @@ public class Tools {
 					if(!pfile.exists()){
 						pfile.mkdirs();
 					}
-					out = new FileOutputStream(file, true);
+					out = new FileOutputStream(file, append);
 					for (int i = 0; i < content.size(); i++) {
 						out.write(content.get(i).getBytes(charset));
 						out.write("\n".getBytes());
@@ -664,11 +682,34 @@ public class Tools {
 					out.close();
 				} catch (Exception e) {
 					e.printStackTrace();
+				} finally {
+					lock.unlock();
 				}
 			}
 		});
 	}
 	
+	/**
+	 * 读文件
+	 * @param file	待读入文件
+	 * @return List<String>
+	 */
+	public static List<String> fileReader(File file) {
+		List<String> content = new ArrayList<String>();
+		if(file.exists()){
+			try {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					content.add(line);
+				}
+				reader.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return content;
+	}
 	
 	
 	/**

@@ -16,7 +16,7 @@ public abstract class BaseDaoImpl<T> extends MysqlBaseDaoImpl<T> implements Base
 	@Override
 	public void initJdbcOperate() {
 		this.jdbcOperate = JdbcOperateManager.getJdbcOperate();
-		this.log = true;
+		this.log = false;
 	}
 
 	

@@ -1,9 +1,8 @@
 package com.tools.web;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -69,12 +68,23 @@ public class RequstServlet extends HttpServlet {
 		String reqPath = req.getRequestURI().replace(req.getContextPath(), "");
 		String reqMethod = req.getMethod();
 		//allow
-		/*String rpath = Tools.getBsaePath() + "allows/req.txt";
-		List<String> content = new ArrayList<String>();
-		File file = new File(rpath);
-		if(file.exists()){
-			//TODO
-		}*/
+		Map<String, String> content = AllowReq.getContent();
+		boolean allow = false;
+		if("true".equals(content.get(reqPath))){
+			allow = true;
+		}
+		if(!allow){
+			try {
+				resp.setStatus(405);
+				resp.getWriter().write("not allow!!");
+				resp.getWriter().flush();
+				resp.getWriter().close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		//allowed
 		for (RequestMappingData mappingData : mapping) {
 			//判断 requset method
 			RequestMethod[] methods = mappingData.getReqMethod();
