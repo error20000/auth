@@ -360,7 +360,40 @@ public class Tools {
 		return res;
 	}
 	
+	public static boolean isAttack(String value){
+		boolean flag = false;
+		if(value.toLowerCase().matches(Attacks.sqlComment)){
+			flag = true;
+		}else if(value.toLowerCase().matches(Attacks.sqlBatch)){
+			flag = true;
+		}else if(value.toLowerCase().matches(Attacks.sqlAnd)){
+			flag = true;
+		}else if(value.toLowerCase().matches(Attacks.sqlOr)){
+			flag = true;
+		}
+		return flag;
+	}
 	
+	public static String attackType(String value){
+		String str = "";
+		if(value.toLowerCase().matches(Attacks.sqlComment)){
+			str = "SQL Comment Injection";
+		}else if(value.toLowerCase().matches(Attacks.sqlBatch)){
+			str = "SQL Batch Injection";
+		}else if(value.toLowerCase().matches(Attacks.sqlAnd)){
+			str = "SQL And Injection";
+		}else if(value.toLowerCase().matches(Attacks.sqlOr)){
+			str = "SQL Or Injection";
+		}
+		return str;
+	}
+	
+	public static void attackRecord (String path, String str){
+		if(isNullOrEmpty(path)){
+			path = Tools.getBsaePath() + "attacks/request/" + Tools.formatDate(null, "yyyyMMdd") + ".txt";
+		}
+		Tools.fileWrite(path, str);
+	}
 
 	public static Map<String, Object> getReqParamsToMap(HttpServletRequest req){
 		Map<String, Object> obj = new HashMap<String, Object>();
@@ -370,7 +403,21 @@ public class Tools {
 		}
 		while (enums.hasMoreElements()) {
 			String name = enums.nextElement();
-			obj.put(name, getReqParam(req, name));
+			//参数名attack，需过滤
+			if(isAttack(name)){
+				//记录日志
+				String str = "参数名: "+attackType(name)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
+				attackRecord("", str);
+				continue;
+			}
+			//参数值attack，可不过滤，使用的sql预编译
+			String value = getReqParam(req, name);
+			if(isAttack(value)){
+				//记录日志
+				String str = "参数值: 参数 "+name+" , "+attackType(value)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
+				attackRecord("", str);
+			}
+			obj.put(name, value);
 		}
 		return obj;
 	}
@@ -392,7 +439,14 @@ public class Tools {
 				}
 			}
 			if(flag){
-				map.put(name, getReqParam(req, name));
+				//参数值attack，可不过滤，使用的sql预编译
+				String value = getReqParam(req, name);
+				if(isAttack(value)){
+					//记录日志
+					String str = "参数值: 参数 "+name+" , "+attackType(value)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
+					attackRecord("", str);
+				}
+				map.put(name, value);
 			}
 		}
 		return map;
@@ -411,6 +465,12 @@ public class Tools {
 				if(name.equals(f.getName())){
 					Object value = null;
 					String tmpValue = getReqParam(req, name);
+					//参数值attack，可不过滤，使用的sql预编译
+					if(isAttack(tmpValue)){
+						//记录日志
+						String str = "参数值: 参数 "+name+" , "+attackType(tmpValue)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
+						attackRecord("", str);
+					}
 					switch (f.getType().getSimpleName()) {
 					case "int":
 						value = Tools.parseInt(tmpValue);
@@ -444,6 +504,7 @@ public class Tools {
 		Method[] methods = clss.getDeclaredMethods();
 		for (Field f : fields) {
 			Object value = null;
+			//自动填充
 			if("date".equals(f.getName())){
 				value = formatDate();
 				for (Method m : methods) {
@@ -461,9 +522,15 @@ public class Tools {
 				enums = req.getAttributeNames();
 			}
 			while (enums.hasMoreElements()) {
-				String param = (String) enums.nextElement();
-				String tmpValue = getReqParam(req, param);
-				if(param.equals(f.getName())){
+				String name = (String) enums.nextElement();
+				String tmpValue = getReqParam(req, name);
+				if(name.equals(f.getName())){
+					//参数值attack，可不过滤，使用的sql预编译
+					if(isAttack(tmpValue)){
+						//记录日志
+						String str = "参数值: 参数 "+name+" , "+attackType(tmpValue)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
+						attackRecord("", str);
+					}
 					switch (f.getType().getSimpleName()) {
 					case "int":
 						value = Tools.parseInt(tmpValue);
@@ -485,7 +552,7 @@ public class Tools {
 						break;
 					}
 					for (Method m : methods) {
-						if(m.getName().indexOf("set") != -1 && m.getName().substring(3).equalsIgnoreCase(param)){
+						if(m.getName().indexOf("set") != -1 && m.getName().substring(3).equalsIgnoreCase(name)){
 							try {
 								m.invoke(obj, value);
 							} catch (Exception e) {
@@ -645,7 +712,7 @@ public class Tools {
     }
 	
 	/**
-	 * 写文件
+	 * 写文件。在原文件基础上新增内容。
 	 * @param file	待写入文件
 	 * @param content 待写入内容
 	 */
@@ -653,6 +720,17 @@ public class Tools {
 		List<String> list = new ArrayList<String>();
 		list.add(content);
 		fileWrite(file, list, true);
+	}
+	
+	/**
+	 * 写文件。在原文件基础上新增内容。
+	 * @param path	文件路劲
+	 * @param content 待写入内容
+	 */
+	public static void fileWrite(String path, String content) {
+		List<String> list = new ArrayList<String>();
+		list.add(content);
+		fileWrite(new File(path), list, true);
 	}
 	
 	/**

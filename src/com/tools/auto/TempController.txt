@@ -48,29 +48,44 @@ public class TempController{
 	private Map<String, Object> verifySave(HttpServletRequest req){
 		//TODO 需要自己修改验证
 		
-		return null;
+		return verifyLogin(req);
 	}
 	
 	//修改验证
 	private Map<String, Object> verifyModify(HttpServletRequest req){
 		//TODO 需要自己修改验证
 		
-		return null;
+		return verifyLogin(req);
 	}
 	
 	//删除验证
 	private Map<String, Object> verifyDelete(HttpServletRequest req){
 		//TODO 需要自己修改验证
 		
-		return null;
+		return verifyLogin(req);
 	}
 
 	
-	//查询验证
+	//查询验证（query、list）
 	private Map<String, Object> verifyQuery(HttpServletRequest req){
 		//TODO 需要自己修改验证
 		
+		return verifyLogin(req);
+	}
+	
+	//查询验证（find、findOne）
+	private Map<String, Object> verifyFind(HttpServletRequest req){
+		//TODO 需要自己修改验证
+		
 		return null;
+	}
+	
+	
+	//excel验证
+	private Map<String, Object> verifyExcel(HttpServletRequest req){
+		//TODO 需要自己修改验证
+		
+		return verifyLogin(req);
 	}
 	
 	
@@ -190,7 +205,7 @@ public class TempController{
 	public String find(HttpServletRequest req, HttpServletResponse resp){
 
 		//验证
-		Map<String, Object> vMap = verifyQuery(req);
+		Map<String, Object> vMap = verifyFind(req);
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
@@ -208,7 +223,7 @@ public class TempController{
 	public String findOne(HttpServletRequest req, HttpServletResponse resp){
 
 		//验证
-		Map<String, Object> vMap = verifyQuery(req);
+		Map<String, Object> vMap = verifyFind(req);
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
@@ -233,7 +248,7 @@ public class TempController{
 	public String excelHeader(HttpServletRequest req, HttpServletResponse resp){
 
 		//验证
-		Map<String, Object> vMap = verifyQuery(req);
+		Map<String, Object> vMap = verifyExcel(req);
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
@@ -272,7 +287,7 @@ public class TempController{
 	public void excelFree(HttpServletRequest req, HttpServletResponse resp){
 
 		//验证
-		Map<String, Object> vMap = verifyQuery(req);
+		Map<String, Object> vMap = verifyExcel(req);
 		if(vMap != null){
 			Tools.output(resp, JSONObject.toJSONString(vMap));
 			return;

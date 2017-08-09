@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 import com.alibaba.fastjson.JSON;
 import com.tools.jdbc.JdbcOperate;
 import com.tools.jdbc.c3p0.C3P0PropertiesConfig;
+import com.tools.utils.Attacks;
 import com.tools.utils.Tools;
 
 public class TableManager {
@@ -180,6 +181,7 @@ public class TableManager {
 		 .collect(Collectors.toList());
 		System.out.println(list);
 
+		System.out.println("1=1and ".toLowerCase().matches(Attacks.sqlAnd));
 	}
 	
 }

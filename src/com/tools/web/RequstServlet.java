@@ -67,6 +67,7 @@ public class RequstServlet extends HttpServlet {
 		List<RequestMappingData> mapping = ServletContainerInitializerImpl.mapping;
 		String reqPath = req.getRequestURI().replace(req.getContextPath(), "");
 		String reqMethod = req.getMethod();
+
 		//allow
 		Map<String, String> content = AllowReq.getContent();
 		boolean allow = false;
@@ -84,6 +85,7 @@ public class RequstServlet extends HttpServlet {
 			}
 			return;
 		}
+		
 		//allowed
 		for (RequestMappingData mappingData : mapping) {
 			//判断 requset method
