@@ -45,9 +45,6 @@ public class Tools {
 	
 	
 	private static final String AUTH_USER_SESSION = "auth_user";
-	public static final String IFS_CODE_OUTPUT = "code";
-	public static final String IFS_MSG_OUTPUT = "msg";
-	public static final String IFS_DATA_OUTPUT = "data";
 	
 	public static final String TCODE_SESSION = "tcode"; //图形验证码的session
 	public static final String TCODE_NUM_SESSION = "tcode_num";//图形验证码的效验次数
@@ -77,7 +74,12 @@ public class Tools {
 		return AUTH_USER_SESSION;
 	}
 
-
+	//TODO 基本的
+	/**
+	 * 判断是否为空串
+	 * @param str
+	 * @return true表示为null或""
+	 */
 	public static boolean isNullOrEmpty(Object str){
 		if(str == null || "".equals(str)){
 			return true;
@@ -163,117 +165,67 @@ public class Tools {
 		}
 	}
 	
+	/**
+	 * 格式化日期
+	 * @return 返回当前日期，格式："yyyy-MM-dd HH:mm:ss"
+	 */
 	public static String formatDate(){
 		return formatDate(null);
 	}
 	
+	/**
+	 * 格式化日期
+	 * @param date 日期
+	 * @return 返回传入日期，格式："yyyy-MM-dd HH:mm:ss"
+	 */
 	public static String formatDate(Date date){
 		return formatDate(date, "yyyy-MM-dd HH:mm:ss");
 	}
 	
+	/**
+	 * 格式化日期
+	 * @param date 日期
+	 * @param str 返回日期格式，默认："yyyy-MM-dd HH:mm:ss"
+	 * @return 返回传入日期，传入格式。
+	 */
 	public static String formatDate(Date date, String str){
 		if(date == null){
 			Calendar calendar = Calendar.getInstance();
 			date = calendar.getTime();
 //			date = new Date();
 		}
+		str = isNullOrEmpty(str) ? "yyyy-MM-dd HH:mm:ss" : str;
 		return new SimpleDateFormat(str).format(date);
 	}
 	
 	
-	public static String getReqParam(HttpServletRequest req, String key){
-		String value = req.getParameter(key);
-		if (isNullOrEmpty(value)) {
-			Object tmp = req.getAttribute(key);
-			if(!isNullOrEmpty(tmp)){
-				value = String.valueOf(value);
-			}
-		}
-		return isNullOrEmpty(value) ? null : value.trim();
-	}
-	
-	public static String getReqParamSafe(HttpServletRequest req, String key){
-		String value = req.getParameter(key);
-		if (isNullOrEmpty(value)) {
-			Object tmp = req.getAttribute(key);
-			if(!isNullOrEmpty(tmp)){
-				value = String.valueOf(value);
-			}
-		}
-		return isNullOrEmpty(value) ? null : value.trim().replace("'", "");
-	}
-	
 	/**
-	 * 参数验证
-	 * @param key	参数名
-	 * @param value	参数值
-	 * @param minLength	为 0 不参与长度验证
-	 * @param maxLength	为 0 不参与最大长度验证
-	 * @return null	通过验证
+	 * 生成随机数
+	 * @param length 随机数长度
+	 * @return 返回字符串类型
 	 */
-	public static Map<String, Object> verifyParam(String key, String value, int minLength, int maxLength) {
-		return verifyParam(key, value, minLength, maxLength, false);
-	}
-	
-	/**
-	 * 参数验证
-	 * @param key	参数名
-	 * @param value	参数值
-	 * @param minLength	为 0 不参与长度验证
-	 * @param maxLength	为 0 不参与最大长度验证
-	 * @param isNumber	是否为数字
-	 * @return null	通过验证
-	 */
-	public static Map<String, Object> verifyParam(String key, String value, int minLength, int maxLength, boolean isNumber) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		
-		if(isNullOrEmpty(value)){
-			map.put("code", Tips.ERROR211.getCode());
-			map.put("msg", Tips.ERROR211.getDesc(key));
-			map.put("data", "");
-			return map;
-		}
-		//minLength 为 0 不参与长度验证
-		if(minLength > 0){
-			if(maxLength > 0){
-				if(!(value.length() >= minLength && value.length() <= maxLength)){
-					map.put("code", Tips.ERROR210.getCode());
-					map.put("msg", Tips.ERROR210.getDesc(key));
-					map.put("data", "");
-					return map;
-				}
-			}else{ //maxLength 为 0 不参与最大长度验证
-				if(!(value.length() >= minLength)){
-					map.put("code", Tips.ERROR210.getCode());
-					map.put("msg", Tips.ERROR210.getDesc(key));
-					map.put("data", "");
-					return map;
-				}
-			}
-		}
-		
-		if(isNumber){
-			String tmp = value.replaceAll("[^0-9]", "");
-			if(isNullOrEmpty(tmp) || tmp.length() != value.length()){
-				map.put("code", Tips.ERROR200.getCode());
-				map.put("msg", Tips.ERROR200.getDesc(key));
-				map.put("data", "");
-				return map;
-			}
-		}
-		
-		return null;
-	}
-	
-	
 	public static String createVCodeNumber(int length) {
 		return createVCode(length, "num", false, "");
 	}
 	
+	/**
+	 * 生成随机字符串
+	 * @param length 随机字符串长度
+	 * @param capType 字母大小写。"A"大写，"a"小写，其他随机大小写
+	 * @return 返回字符串类型
+	 */
 	public static String createVCodeString(int length, String capType) {
 		return createVCode(length, "char", false, capType);
 	}
 	
+	/**
+	 * 生成随机字符串
+	 * @param length 随机字符串长度
+	 * @param codeType 字符类型。"num"数字，"char"字母，其他随机数字、字母
+	 * @param ram {@code codeType} 为其他时，ram才有效。true表示数字字母间隔出现，false随机出现
+	 * @param capType 字母大小写。"A"大写，"a"小写，其他随机大小写
+	 * @return 返回字符串类型
+	 */
 	public static String createVCode(int length, String codeType, boolean ram, String capType ) {
 		String val = "";
 		Random random = new Random();
@@ -317,6 +269,11 @@ public class Tools {
 		return val;
 	}
 	
+	/**
+	 * 转换成十六进制的字符串形式
+	 * @param bytes 字节数组
+	 * @return String 返回十六进制的字符串
+	 */
 	public static String getFormattedText(byte[] bytes) {
 		int len = bytes.length;
 		StringBuffer buf = new StringBuffer();
@@ -332,14 +289,24 @@ public class Tools {
 		return buf.toString();
 	}
 	
-	
-	
+	/**
+	 * MD5，默认字符编码 “utf-8”
+	 * @param str 待加密字符串
+	 * @return String 返回md5字符串
+	 */
 	public static String md5(String str) {
 		return md5(str, "utf-8");
 	}
 	
+	/**
+	 * MD5
+	 * @param str  待加密字符串
+	 * @param charsetName  编码，默认 “utf-8”
+	 * @return String 返回md5字符串
+	 */
 	public static String md5(String str, String charsetName) {
 		try {
+			charsetName = isNullOrEmpty(charsetName) ? "utf-8" : charsetName;
 			return md5(str.getBytes(charsetName));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -347,6 +314,11 @@ public class Tools {
 		return "";
 	}
 	
+	/**
+	 * MD5
+	 * @param bytes  待加密字节数组
+	 * @return String 返回md5字符串
+	 */
 	public static String md5(byte[] bytes) {
 		String res = "";
 		MessageDigest digest;
@@ -360,6 +332,112 @@ public class Tools {
 		return res;
 	}
 	
+	//TODO request相关
+	/**
+	 * 获取请求参数
+	 * @param req	request请求
+	 * @param key	参数名
+	 * @return String	返回参数值，没找到返回null
+	 */
+	public static String getReqParam(HttpServletRequest req, String key){
+		String value = req.getParameter(key);
+		if (isNullOrEmpty(value)) {
+			Object tmp = req.getAttribute(key);
+			if(!isNullOrEmpty(tmp)){
+				value = String.valueOf(value);
+			}
+		}
+		return isNullOrEmpty(value) ? null : value.trim();
+	}
+	
+	/**
+	 * 获取请求参数，参数值防注入
+	 * @param req	request请求
+	 * @param key	参数名
+	 * @return String	返回参数值，没找到或被注入返回null
+	 */
+	public static String getReqParamSafe(HttpServletRequest req, String key){
+		String value = req.getParameter(key);
+		if (isNullOrEmpty(value)) {
+			Object tmp = req.getAttribute(key);
+			if(!isNullOrEmpty(tmp)){
+				value = String.valueOf(value);
+			}
+		}
+		if(!isNullOrEmpty(value) && isAttack(value)){
+			value = null;
+		}
+		return isNullOrEmpty(value) ? null : value.trim();
+	}
+	
+	/**
+	 * 参数验证
+	 * @param key	参数名
+	 * @param value	参数值
+	 * @param minLength	为 0 不参与长度验证
+	 * @param maxLength	为 0 不参与最大长度验证
+	 * @return null	通过验证
+	 */
+	public static Map<String, Object> verifyParam(String key, String value, int minLength, int maxLength) {
+		return verifyParam(key, value, minLength, maxLength, false);
+	}
+	
+	/**
+	 * 参数验证
+	 * @param key	参数名
+	 * @param value	参数值
+	 * @param minLength	为 0 不参与长度验证
+	 * @param maxLength	为 0 不参与最大长度验证
+	 * @param isNumber	是否为数字
+	 * @return null	通过验证
+	 */
+	public static Map<String, Object> verifyParam(String key, String value, int minLength, int maxLength, boolean isNumber) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		if(isNullOrEmpty(value)){
+			map.put(ResultKey.CODE, Tips.ERROR211.getCode());
+			map.put(ResultKey.MSG, Tips.ERROR211.getDesc(key));
+			map.put(ResultKey.DATA, "");
+			return map;
+		}
+		//minLength 为 0 不参与长度验证
+		if(minLength > 0){
+			if(maxLength > 0){
+				if(!(value.length() >= minLength && value.length() <= maxLength)){
+					map.put(ResultKey.CODE, Tips.ERROR210.getCode());
+					map.put(ResultKey.MSG, Tips.ERROR210.getDesc(key));
+					map.put(ResultKey.DATA, "");
+					return map;
+				}
+			}else{ //maxLength 为 0 不参与最大长度验证
+				if(!(value.length() >= minLength)){
+					map.put(ResultKey.CODE, Tips.ERROR210.getCode());
+					map.put(ResultKey.MSG, Tips.ERROR210.getDesc(key));
+					map.put(ResultKey.DATA, "");
+					return map;
+				}
+			}
+		}
+		
+		if(isNumber){
+			String tmp = value.replaceAll("[^0-9]", "");
+			if(isNullOrEmpty(tmp) || tmp.length() != value.length()){
+				map.put(ResultKey.CODE, Tips.ERROR200.getCode());
+				map.put(ResultKey.MSG, Tips.ERROR200.getDesc(key));
+				map.put(ResultKey.DATA, "");
+				return map;
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * 检测是否SQL注入
+	 * @param value
+	 * @return boolean
+	 */
 	public static boolean isAttack(String value){
 		boolean flag = false;
 		if(value.toLowerCase().matches(Attacks.sqlComment)){
@@ -374,6 +452,11 @@ public class Tools {
 		return flag;
 	}
 	
+	/**
+	 * 检测SQL注入类型
+	 * @param value
+	 * @return String
+	 */
 	public static String attackType(String value){
 		String str = "";
 		if(value.toLowerCase().matches(Attacks.sqlComment)){
@@ -388,6 +471,11 @@ public class Tools {
 		return str;
 	}
 	
+	/**
+	 * 记录SQL注入
+	 * @param path	文件路径，默认："/attacks/request/"
+	 * @param str	内容
+	 */
 	public static void attackRecord (String path, String str){
 		if(isNullOrEmpty(path)){
 			path = Tools.getBsaePath() + "attacks/request/" + Tools.formatDate(null, "yyyyMMdd") + ".txt";
@@ -395,6 +483,11 @@ public class Tools {
 		Tools.fileWrite(path, str);
 	}
 
+	/**
+	 * 获取请求参数，防注入
+	 * @param req	request请求
+	 * @return	map
+	 */
 	public static Map<String, Object> getReqParamsToMap(HttpServletRequest req){
 		Map<String, Object> obj = new HashMap<String, Object>();
 		Enumeration<String> enums = req.getParameterNames();
@@ -410,7 +503,7 @@ public class Tools {
 				attackRecord("", str);
 				continue;
 			}
-			//参数值attack，可不过滤，使用的sql预编译
+			//参数值attack，可不过滤，使用的SQL预编译
 			String value = getReqParam(req, name);
 			if(isAttack(value)){
 				//记录日志
@@ -422,6 +515,12 @@ public class Tools {
 		return obj;
 	}
 	
+	/**
+	 * 获取请求参数，防注入
+	 * @param req	request请求
+	 * @param params	过滤条件。只获取与配置名相同的参数，多个逗号“,”隔开
+	 * @return	map
+	 */
 	public static Map<String, Object> getReqParamsToMap(HttpServletRequest req, String params) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		Enumeration<String> enums = req.getParameterNames();
@@ -430,7 +529,7 @@ public class Tools {
 		}
 		while(enums.hasMoreElements()){
 			String name = enums.nextElement();
-			String[] tmp = params.split(",");
+			String[] tmp = params.replace("，", ",").split(",");
 			boolean flag = false;
 			for (String str : tmp) {
 				if(str.equals(name)){
@@ -439,7 +538,7 @@ public class Tools {
 				}
 			}
 			if(flag){
-				//参数值attack，可不过滤，使用的sql预编译
+				//参数值attack，可不过滤，使用的SQL预编译
 				String value = getReqParam(req, name);
 				if(isAttack(value)){
 					//记录日志
@@ -452,6 +551,12 @@ public class Tools {
 		return map;
 	}
 	
+	/**
+	 * 获取请求参数，防注入
+	 * @param req	request请求
+	 * @param clss	过滤条件。只获取与类属性名相同的参数
+	 * @return	map
+	 */
 	public static Map<String, Object> getReqParamsToMap(HttpServletRequest req, Class<?> clss){
 		Map<String, Object> obj = new HashMap<String, Object>();
 		Enumeration<String> enums = req.getParameterNames();
@@ -465,12 +570,13 @@ public class Tools {
 				if(name.equals(f.getName())){
 					Object value = null;
 					String tmpValue = getReqParam(req, name);
-					//参数值attack，可不过滤，使用的sql预编译
+					//参数值attack，可不过滤，使用的SQL预编译
 					if(isAttack(tmpValue)){
 						//记录日志
 						String str = "参数值: 参数 "+name+" , "+attackType(tmpValue)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
 						attackRecord("", str);
 					}
+					//格式化
 					switch (f.getType().getSimpleName()) {
 					case "int":
 						value = Tools.parseInt(tmpValue);
@@ -498,6 +604,12 @@ public class Tools {
 		return obj;
 	}
 	
+	/**
+	 * 获取请求参数，防注入
+	 * @param req	request请求
+	 * @param obj	转换对象
+	 * @return	T
+	 */
 	public static <T> T getReqParamsToObject(HttpServletRequest req, T obj){
 		Class<?> clss = obj.getClass();
 		Field[] fields = clss.getDeclaredFields();
@@ -531,6 +643,7 @@ public class Tools {
 						String str = "参数值: 参数 "+name+" , "+attackType(tmpValue)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
 						attackRecord("", str);
 					}
+					//格式化
 					switch (f.getType().getSimpleName()) {
 					case "int":
 						value = Tools.parseInt(tmpValue);
@@ -566,7 +679,11 @@ public class Tools {
 		return obj;
 	}
 	
-	
+	/**
+	 * 对象转map
+	 * @param obj	对象
+	 * @return	Map
+	 */
 	public static Map<String, Object> parseObjectToMap(Object object){
 		Map<String, Object> map = new HashMap<String, Object>();
 		Field[] fields = object.getClass().getDeclaredFields();
@@ -592,6 +709,11 @@ public class Tools {
 		return map;
 	}
 	
+	/**
+	 * 数组转map
+	 * @param objs	数组
+	 * @return	Map，key为数组序号
+	 */
 	public static Map<String, Object> parseArrayToMap(Object... objs){
 		Map<String, Object> map = new HashMap<String, Object>();
 		for (int i = 0; i < objs.length; i++) {
@@ -602,18 +724,31 @@ public class Tools {
 	
 	
 	/**
-	 * 输出
-	 * @param resp
-	 * @param result
+	 * response输出
+	 * @param resp	response
+	 * @param result	输出字符串
 	 */
 	public static void output(HttpServletResponse resp, String result) {
 		output(null, resp, result, false);
 	}
 	
+	/**
+	 * response输出
+	 * @param resp	response
+	 * @param result	输出字符串
+	 * @param cos	是否跨域
+	 */
 	public static void output(HttpServletResponse resp, String result, boolean cos) {
 		output(null, resp, result, cos);
 	}
 	
+	/**
+	 * response输出
+	 * @param req	request
+	 * @param resp	response
+	 * @param result	输出字符串
+	 * @param cos	是否跨域
+	 */
 	public static void output(HttpServletRequest req, HttpServletResponse resp, String result, boolean cos) {
 		try {
 			if(isNullOrEmpty(resp.getContentType())){
@@ -637,10 +772,11 @@ public class Tools {
 	
 	
 	/**
-	 * md5
-	 * @param data
-	 * @param secretKey
-	 * @return
+	 * sign验证，value不为空才参数验证。
+	 * <p>格式：md5(key+value+key+value+。。。+secretKey)
+	 * @param data	参数
+	 * @param secretKey	密钥
+	 * @return	md5字符串
 	 */
 	public static String getSign(Map<String, Object> data, String secretKey){
 		List<String> keys = new ArrayList<String>(data.keySet());
@@ -654,6 +790,15 @@ public class Tools {
 		return md5(str + secretKey);
 	}
 	
+	/**
+	 * sign验证，value不为空才参数验证。
+	 * <p>格式：md5(key+connector+value+separator+key+connector+value+separator+。。。+secretKey)
+	 * @param data	参数
+	 * @param connector	链接符
+	 * @param separator	分隔符
+	 * @param secretKey	密钥
+	 * @return	md5字符串
+	 */
 	public static String getSign(Map<String, Object> data, String connector, String separator, String secretKey){
 		List<String> keys = new ArrayList<String>(data.keySet());
 		Collections.sort(keys);
@@ -669,7 +814,7 @@ public class Tools {
 	
 	/**
 	 * 获取ip地址
-	 * @param request
+	 * @param req request
 	 * @return
 	 */
 	public static String getIp(HttpServletRequest req) {
@@ -711,6 +856,7 @@ public class Tools {
         return base+"/";
     }
 	
+	//TODO 文件
 	/**
 	 * 写文件。在原文件基础上新增内容。
 	 * @param file	待写入文件
@@ -724,7 +870,7 @@ public class Tools {
 	
 	/**
 	 * 写文件。在原文件基础上新增内容。
-	 * @param path	文件路劲
+	 * @param path	文件路径
 	 * @param content 待写入内容
 	 */
 	public static void fileWrite(String path, String content) {
@@ -791,7 +937,7 @@ public class Tools {
 	
 	
 	/**
-	 * @Description: 将base64编码字符串转换为图片
+	 * 将base64编码字符串转换为图片
 	 * @Author: 
 	 * @CreateTime: 
 	 * @param imgStr base64编码字符串
@@ -821,9 +967,10 @@ public class Tools {
 	}
 	
 	/**
-	 * @Description: 根据图片地址转换为base64编码字符串
+	 * 根据图片地址转换为base64编码字符串
 	 * @Author: 
 	 * @CreateTime: 
+	 * @param imgFile 图片路径-具体到文件
 	 * @return
 	 */
 	public static String getImageStr(String imgFile) {
@@ -840,6 +987,12 @@ public class Tools {
 	    return Base64.getEncoder().encodeToString(data);
 	}
 	
+	/**
+	 * 获取正则匹配值
+	 * @param str	待匹配字符串
+	 * @param regEx	正则表达式
+	 * @return list 返回匹配的结果集
+	 */
 	public static List<String> parseRegEx(String str, String regEx) {
 		List<String> result = new ArrayList<String>();
 		Pattern pat = Pattern.compile(regEx); 
@@ -1116,19 +1269,63 @@ public class Tools {
 	 * @return 返回范型类型数组
 	 * @throws ClassNotFoundException 类找不到异常
 	 */
-	public static Class<?>[] getFieldGenericType(Field field) throws ClassNotFoundException {
-		Type fieldType = field.getGenericType();
-		if(fieldType instanceof ParameterizedType){
-			return getGenericClass((ParameterizedType)fieldType);
+	public static Class<?>[] getGenericType(Field field) throws ClassNotFoundException {
+		Type type = field.getGenericType();
+		if(type instanceof ParameterizedType){
+			return getGenericClass((ParameterizedType)type);
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取 Class 的范型类型
+	 * @param clss  Class 对象
+	 * @return 返回范型类型数组
+	 * @throws ClassNotFoundException 类找不到异常
+	 */
+	public static Class<?>[] getGenericType(Class<?> clss) throws ClassNotFoundException {
+		Type type = clss.getGenericSuperclass();
+		if(type instanceof ParameterizedType){
+			return getGenericClass((ParameterizedType)type);
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取 Field 的范型类型
+	 * @param field  field 对象
+	 * @param index  序号
+	 * @return 返回Class对象
+	 * @throws ClassNotFoundException 类找不到异常
+	 */
+	public static Class<?> getGenericType(Field field, int index) throws ClassNotFoundException {
+		Class<?>[] clsses = getGenericType(field);
+		if(clsses != null){
+			return clsses[index];
+		}
+		return null;
+	}
+	
+	/**
+	 * 获取 Class 的范型类型
+	 * @param clss  Class 对象
+	 * @param index  序号
+	 * @return 返回Class对象
+	 * @throws ClassNotFoundException 类找不到异常
+	 */
+	public static Class<?> getGenericType(Class<?> clss, int index) throws ClassNotFoundException {
+		Class<?>[] clsses = getGenericType(clss);
+		if(clsses != null){
+			return clsses[index];
 		}
 		return null;
 	}
 
 	
 	public static void main(String[] args) {
-		String imgstr = getImageStr("C:\\Users\\Administrator\\Desktop\\65.png");
-		System.out.println(imgstr);
-		generateImage(imgstr, "C:\\Users\\Administrator\\Desktop\\63.png");
+//		String imgstr = getImageStr("C:\\Users\\Administrator\\Desktop\\65.png");
+//		System.out.println(imgstr);
+//		generateImage(imgstr, "C:\\Users\\Administrator\\Desktop\\63.png");
 	}
 	
 }

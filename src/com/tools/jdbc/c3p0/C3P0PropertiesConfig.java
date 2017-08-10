@@ -121,6 +121,7 @@ public class C3P0PropertiesConfig {
 					}
 		        }
 			}
+			properties.clear();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
