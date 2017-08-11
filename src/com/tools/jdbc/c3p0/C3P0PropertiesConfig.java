@@ -13,7 +13,8 @@ import com.tools.utils.Tools;
 
 public class C3P0PropertiesConfig {
 
-	private static ComboPooledDataSource dataSource = null;
+	private static ComboPooledDataSource dataSource = null; //主库
+	private static ComboPooledDataSource dataSourceSecond = null; //从库
 
 	/**
 	 * 使用默认配置。
@@ -24,22 +25,84 @@ public class C3P0PropertiesConfig {
      */
     public C3P0PropertiesConfig(){
     	init(this.getClass().getResourceAsStream("c3p0.properties"));
+		//默认从库为主库
+        if(dataSourceSecond == null){
+        	dataSourceSecond = dataSource;
+        }
     }
 
+    /**
+     * 主库配置，从库默认为主库
+     * @param proPath
+     */
     public C3P0PropertiesConfig(String proPath){
     	init(this.getClass().getResourceAsStream("/"+proPath));
+		//默认从库为主库
+        if(dataSourceSecond == null){
+        	dataSourceSecond = dataSource;
+        }
     }
     
+    /**
+     * 主库配置，从库默认为主库
+     * @param file
+     */
     public C3P0PropertiesConfig(File file){
     	try {
 			init(new FileInputStream(file));
+			//默认从库为主库
+	        if(dataSourceSecond == null){
+	        	dataSourceSecond = dataSource;
+	        }
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
     }
     
+    /**
+     * 主库配置，从库默认为主库
+     * @param in
+     */
     public C3P0PropertiesConfig(InputStream in){
 		init(in);
+		//默认从库为主库
+        if(dataSourceSecond == null){
+        	dataSourceSecond = dataSource;
+        }
+    }
+    
+    /**
+     * 主从库配置
+     * @param in	主库
+     * @param inSecond	从库
+     */
+    public C3P0PropertiesConfig(InputStream in, InputStream inSecond){
+		init(in);
+		initSecond(inSecond);
+    }
+    
+    /**
+     * 主从库配置
+     * @param file	主库
+     * @param fileSecond	从库
+     */
+    public C3P0PropertiesConfig(File file, File fileSecond){
+    	try {
+			init(new FileInputStream(file));
+			initSecond(new FileInputStream(fileSecond));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    /**
+     * 主从库配置
+     * @param proPath	主库
+     * @param proPathSecond	从库
+     */
+    public C3P0PropertiesConfig(String proPath, String proPathSecond){
+    	init(this.getClass().getResourceAsStream("/"+proPath));
+    	initSecond(this.getClass().getResourceAsStream("/"+proPathSecond));
     }
     
     /*public void init(InputStream in){
@@ -71,8 +134,22 @@ public class C3P0PropertiesConfig {
 		}
     }*/
     
+    /**
+     * 获取主库DataSource
+     * @return ComboPooledDataSource 
+     * @see com.mchange.v2.c3p0.ComboPooledDataSource
+     */
     public ComboPooledDataSource getDataSource(){
     	return dataSource;
+    }
+    
+    /**
+     * 获取从库DataSource
+     * @return ComboPooledDataSource 
+     * @see com.mchange.v2.c3p0.ComboPooledDataSource
+     */
+    public ComboPooledDataSource getDataSourceSecond(){
+    	return dataSourceSecond;
     }
     
     public void init(InputStream in){
@@ -126,4 +203,59 @@ public class C3P0PropertiesConfig {
 			e.printStackTrace();
 		}
     }
+    
+    
+    public void initSecond(InputStream in){
+    	Properties properties = new Properties();
+    	try {
+			properties.load(in);
+			if(dataSourceSecond == null){
+				//dataSource资源只能初始化一次
+				dataSourceSecond = new ComboPooledDataSource();
+		        Enumeration<?> keys = properties.keys();
+		        while(keys.hasMoreElements()){
+		        	String key = (String) keys.nextElement();
+		        	if(key.startsWith("c3p0.")){
+		        		key = key.replace("c3p0.", "");
+		        	}else if(key.startsWith("test.")){
+		        		continue;
+		        	}
+//		        	String mname = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
+//		        	Method[] methods = Tools.findMethod(dataSource.getClass(), mname, 1);
+		        	Method[] methods = dataSourceSecond.getClass().getDeclaredMethods();
+		        	for (Method method : methods) {
+		        		String tmp = method.getName();
+						if(tmp.startsWith("set") && tmp.substring("set".length()).equalsIgnoreCase(key)){
+							switch (method.getParameterTypes()[0].getSimpleName()) {
+							case "int":
+								method.invoke(dataSourceSecond, Tools.parseInt(properties.getProperty(key)));
+								break;
+							case "long":
+								method.invoke(dataSourceSecond, Tools.parseLong(properties.getProperty(key)));
+								break;
+							case "float":
+								method.invoke(dataSourceSecond, Tools.parseFloat(properties.getProperty(key)));
+								break;
+							case "double":
+								method.invoke(dataSourceSecond, Tools.parseDouble(properties.getProperty(key)));
+								break;
+							case "boolean":
+								method.invoke(dataSourceSecond, Tools.parseBoolean(properties.getProperty(key)));
+								break;
+							default:
+								method.invoke(dataSourceSecond, properties.getProperty(key));
+								break;
+							}
+							break;
+						}
+					}
+		        }
+			}
+			properties.clear();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
+    
 }

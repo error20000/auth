@@ -41,6 +41,14 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	 */
 	protected JdbcOperate jdbcOperate = null;
 	/**
+	 * 从库 dataSource 事务处理相关（非必须），默认：dataSource
+	 */
+	protected DataSource dataSourceSecond = null;
+	/**
+	 * 从库 jdbc 主要方法（从库必须）初始化，默认：jdbcOperate
+	 */
+	protected JdbcOperate jdbcOperateSecond = null;
+	/**
 	 * sql 日志打印（非必须），默认：false
 	 */
 	protected boolean log = false;
@@ -50,10 +58,18 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 	
 	public MysqlBaseDaoImpl() {
 		initJdbcOperate();
+		//默认从库为主库
+		if(dataSourceSecond == null){
+			dataSourceSecond = dataSource;
+		}
+		if(jdbcOperateSecond == null){
+			jdbcOperateSecond = jdbcOperate;
+		}
 	}
 
 	/**
-	 * 如果需要使用事物，要初始化dataSource
+	 * 必须初始化 {@code jdbcOperate}，其他根据需要选择。
+	 * <p>如果需要使用事物，要初始化dataSource
 	 */
 	public abstract void initJdbcOperate();
 	
@@ -874,7 +890,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			Type type = getClass().getGenericSuperclass();
 			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
 			Class<?> clss = clsses[0];
-			res = (List<T>) jdbcOperate.queryObjectList(sql, clss, queryCondition);
+			res = (List<T>) jdbcOperateSecond.queryObjectList(sql, clss, queryCondition);
 			//DEBUG
 			if(log){
 				System.out.println("find result: " + res);
@@ -956,7 +972,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			Type type = getClass().getGenericSuperclass();
 			Class<?>[] clsses = Tools.getGenericClass((ParameterizedType) type);
 			Class<?> clss = clsses[0];
-			T res = (T) jdbcOperate.queryObject(sql, clss, queryCondition);
+			T res = (T) jdbcOperateSecond.queryObject(sql, clss, queryCondition);
 			//DEBUG
 			if(log){
 				System.out.println("find result: " + res);
@@ -1113,7 +1129,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 mapList find params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
-			res = jdbcOperate.queryMapList(sql, queryCondition);
+			res = jdbcOperateSecond.queryMapList(sql, queryCondition);
 			//DEBUG
 			if(log){
 				System.out.println("mapList find result: " + res);
@@ -1206,7 +1222,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			LogsTool.logSet(logPath+"/"+tableName, "【QUERY】 map find params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
-			Map<String, Object> res = jdbcOperate.queryMap(sql, queryCondition);
+			Map<String, Object> res = jdbcOperateSecond.queryMap(sql, queryCondition);
 			//DEBUG
 			if(log){
 				System.out.println("map find result: " + res);
@@ -1306,7 +1322,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			LogsTool.logSet(logPath+"/"+tableName, "【COUNT】 size params: " + JSON.toJSONString(queryCondition));
 		}
 		try {
-			res = jdbcOperate.queryObject(sql, Long.class, queryCondition);
+			res = jdbcOperateSecond.queryObject(sql, Long.class, queryCondition);
 			//DEBUG
 			if(log){
 				System.out.println("size result: " + res);
