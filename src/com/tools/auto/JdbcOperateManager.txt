@@ -38,6 +38,27 @@ public class JdbcOperateManager {
 		jdbcOperateSecond = new JdbcOperate(dataSourceSecond);
 	}
 	
+	//主从库初始化
+	/*static{
+		String dbPath = "";
+		String dbPathSecond = "";
+		//主从库单独配置
+		C3P0PropertiesConfig config = null;
+		File file = new File(dbPath);
+		File fileSecond = new File(dbPathSecond);
+		if(file.exists() && fileSecond.exists()){
+			config = new C3P0PropertiesConfig(file, fileSecond);
+			dataSource = config.getDataSource();
+			dataSourceSecond = config.getDataSourceSecond();
+		}else{
+			config = new C3P0PropertiesConfig(dbPath, dbPathSecond);
+			dataSource = config.getDataSource();
+			dataSourceSecond = config.getDataSourceSecond();
+		}
+		jdbcOperate = new JdbcOperate(dataSource);
+		jdbcOperateSecond = new JdbcOperate(dataSourceSecond);
+	}*/
+	
 	public static JdbcOperate getJdbcOperate() {
 		return jdbcOperate;
 	}
