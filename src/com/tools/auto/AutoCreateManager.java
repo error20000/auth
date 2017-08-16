@@ -89,19 +89,37 @@ public class AutoCreateManager {
 		this.chartset = chartset;
 	} 
 	
+	/**
+	 * 整库创建
+	 */
 	public void start(){
 		if(manager == null){
 			return;
 		}
 		createBase();
-		createEntity();
+		createTable();
 	} 
+	
+	/**
+	 * 整表创建
+	 * @param tableName	表名
+	 */
+	public void start(String tableName){
+		if(manager == null){
+			return;
+		}
+		if(Tools.isNullOrEmpty(tableName)){
+			return;
+		}
+		createTable(tableName);
+	}
 
-	public void createEntity(){
+	public void createTable(){
 		if(manager == null){
 			return;
 		}
 		//解析数据库
+		System.out.println("解析数据库...");
 		List<Table> list = manager.getDbInfo();
 		for (Table table : list) {
 			String ename = table.getTableName().replace(prefix, "");
@@ -115,6 +133,30 @@ public class AutoCreateManager {
 			table.setEntityName(ename);
 			createEntity(table);
 		}
+		System.out.println("处理完毕...");
+	}
+	
+	public void createTable(String tableName){
+		if(manager == null){
+			return;
+		}
+		if(Tools.isNullOrEmpty(tableName)){
+			return;
+		}
+		//解析数据表
+		System.out.println("解析数据表...");
+		Table table = manager.getDbTable(tableName);
+		String ename = table.getTableName().replace(prefix, "");
+		ename = ename.substring(0, 1).toUpperCase() + ename.substring(1);
+		if(!Tools.isNullOrEmpty(separator)){
+			int index = 0;
+			while ((index = ename.indexOf(separator)) != -1) {
+				ename = ename.substring(0, index)+ename.substring(index+1, index+2).toUpperCase()+ename.substring(index+2);
+			}
+		}
+		table.setEntityName(ename);
+		createEntity(table);
+		System.out.println("处理完毕...");
 	}
 	
 	/**
@@ -122,6 +164,7 @@ public class AutoCreateManager {
 	 * @param table 表信息
 	 */
 	public void createEntity(Table table){
+		System.out.println("start create ..." + table.getEntityName());
 		String packName = config.getEntityPath(); //包路径
 		String eName = table.getEntityName();
 		//创建entity
@@ -223,14 +266,17 @@ public class AutoCreateManager {
 	 * @param fileName 生成文件名
 	 */
 	public void createBase(){
+		System.out.println("start create base file...");
 		createDao("BaseDao", "BaseDao");
 		createDaoImpl("BaseDaoImpl", "BaseDaoImpl");
 		createDaoUtil("JdbcOperateManager", "JdbcOperateManager");
 		createService("BaseService", "BaseService");
 		createServiceImpl("BaseServiceImpl", "BaseServiceImpl");
+		System.out.println("end create base file.");
 	}
 	
 	private void createEntityFile(String packName, Table table, String chartset){
+		System.out.println("start create entity file... " +packName+" "+table.getEntityName());
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
 		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + "Temp.txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + table.getEntityName() + ".java"; //输出路径
@@ -338,10 +384,12 @@ public class AutoCreateManager {
 				e.printStackTrace(); 
 			}
 		}
+		System.out.println("end create entity file... " +packName+" "+table.getEntityName());
 	}
 	
 	
 	private void createDaoFile(String packName, String tempName, String fileName, String chartset){
+		System.out.println("start create dao file... " +packName+" "+fileName);
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
 		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
@@ -404,9 +452,11 @@ public class AutoCreateManager {
 				e.printStackTrace(); 
 			}
 		}
+		System.out.println("end create dao file... " +packName+" "+fileName);
 	}
 	
 	private void createServiceFile(String packName, String tempName, String fileName, String chartset){
+		System.out.println("start create service file... " +packName+" "+fileName);
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
 		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
@@ -468,9 +518,11 @@ public class AutoCreateManager {
 				e.printStackTrace(); 
 			}
 		}
+		System.out.println("end create service file... " +packName+" "+fileName);
 	}
 	
 	private void createDBFile(String packName, String fileName, String chartset){
+		System.out.println("start add db file... " +packName+" "+fileName);
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
 		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + "DB.txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + "DB.java"; //输出路径
@@ -505,8 +557,9 @@ public class AutoCreateManager {
 			//判断dao层是否已注册
 			boolean flag = true;
 			for (String str : content) {
-				if(str.indexOf(fileName.toUpperCase()+"_DAO") != -1){
+				if(str.matches(".*\\s+"+fileName.toUpperCase()+"_DAO\\s+.*")){
 					flag = false;
+					System.out.println("db已注册... "+ fileName);
 				}
 			}
 			if(flag){
@@ -527,10 +580,11 @@ public class AutoCreateManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+		System.out.println("end add dao file... " +packName+" "+fileName);
 	}
 	
 	private void createServletFile(String packName, String tempName, String fileName, String chartset){
+		System.out.println("start create servlet file... " +packName+" "+fileName);
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
 		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
@@ -590,9 +644,11 @@ public class AutoCreateManager {
 				e.printStackTrace(); 
 			}
 		}
+		System.out.println("end create servlet file... " +packName+" "+fileName);
 	}
 	
 	private void createControllerFile(String packName, String tempName, String fileName, String chartset){
+		System.out.println("start create controller file... " +packName+" "+fileName);
 		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
 		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
 		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
@@ -650,6 +706,7 @@ public class AutoCreateManager {
 				e.printStackTrace(); 
 			}
 		}
+		System.out.println("end create controller file... " +packName+" "+fileName);
 	}
 	
 	

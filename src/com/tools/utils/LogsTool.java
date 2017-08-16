@@ -12,6 +12,15 @@ public class LogsTool {
 
 	private static ExecutorService service = Executors.newFixedThreadPool(20);
 	private static Object lock = new Object();
+	private static boolean close = false;
+	
+	/**
+	 * 写日志开关
+	 * @param close true 关闭日志记录，false 打开日志记录。默认：false.
+	 */
+	public static void close(boolean close) {
+		LogsTool.close = close;
+	}
 	
 	/**
 	 * 写日志，保存为文件
@@ -57,6 +66,7 @@ public class LogsTool {
 	 * @param log
 	 */
 	public static void logSet(File file, String log) {
+		if(close) return;
 		service.submit(new Runnable() {
 			@Override
 			public void run() {

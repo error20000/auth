@@ -150,7 +150,7 @@ public class TableManager {
 	}
 	
 	public static void main(String[] args) {
-		TableManager manager = new TableManager("db.properties");
+//		TableManager manager = new TableManager("db.properties");
 //		Table table = manager.getDbTable("s_app");
 //		System.out.println(JSON.toJSONString(table));
 		
