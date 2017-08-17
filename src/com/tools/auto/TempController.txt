@@ -32,7 +32,7 @@ import com.tools.web.annotation.RequestMapping;
  *
  */
 @Controller
-@RequestMapping(name="TempController", path={"/{path}"})
+@RequestMapping(name="TempController", path={"/api/{path}"})
 public class TempController{
 	
 	private TempService service = new TempServiceImpl();

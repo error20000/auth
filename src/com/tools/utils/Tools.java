@@ -478,7 +478,7 @@ public class Tools {
 	 */
 	public static void attackRecord (String path, String str){
 		if(isNullOrEmpty(path)){
-			path = Tools.getBsaePath() + "attacks/request/" + Tools.formatDate(null, "yyyyMMdd") + ".txt";
+			path = Tools.getBasePath() + "attacks/request/" + Tools.formatDate(null, "yyyyMMdd") + ".txt";
 		}
 		Tools.fileWrite(path, str);
 	}
@@ -840,7 +840,7 @@ public class Tools {
 	 * @param request
 	 * @return tomcat http://127.0.0.1:8080/sitesnqx/   nginx http://127.0.0.1/
 	 */
-	public static String getBsaeUrl(HttpServletRequest request) {
+	public static String getBaseUrl(HttpServletRequest request) {
         String base = request.getRequestURL().toString().replace(request.getRequestURI(), "");
         if(base.split(":").length >= 3){ 
         	base += request.getContextPath();
@@ -851,9 +851,35 @@ public class Tools {
 	/**
 	 * 获取项目地址
 	 */
-	public static String getBsaePath() {
-		String base = Tools.class.getResource("/").getPath().replace("/build/classes/", "").replace("/WEB-INF/classes/", "");
+	public static String getBasePath() {
+		String base = Tools.class.getResource("/").getPath().replace("/build/classes/", "").replace("/WEB-INF/classes/", "").replace("/target/classes/", "");
         return base+"/";
+    }
+	
+	/**
+	 * 获取项目src地址
+	 */
+	public static String getBaseSrcPath() {
+		String base = Tools.class.getResource("/").getPath();
+		if(base.indexOf("/target/classes/") != -1){ //maven
+			base = base.replace("/target/classes/", "") + "/src/main/java/";
+		}else{ // eclipse  myeclipse
+			base = base.replace("/build/classes/", "").replace("/WEB-INF/classes/", "") + "/src/";
+		}
+        return base;
+    }
+	
+	/**
+	 * 获取项目src地址
+	 */
+	public static String getBaseResPath() {
+		String base = Tools.class.getResource("/").getPath();
+		if(base.indexOf("/target/classes/") != -1){ //maven
+			base = base.replace("/target/classes/", "") + "/src/main/resources/";
+		}else{ // eclipse  myeclipse
+			base = base.replace("/build/classes/", "").replace("/WEB-INF/classes/", "") + "/src/";
+		}
+        return base;
     }
 	
 	//TODO 文件

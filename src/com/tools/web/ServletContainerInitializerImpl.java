@@ -208,7 +208,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 			Thread thread = new Thread(new Runnable() {
 				@Override
 				public void run() {
-					String rpath = Tools.getBsaePath() + AllowReq.getFilePath();
+					String rpath = Tools.getBasePath() + AllowReq.getFilePath();
 					List<String> content = new ArrayList<String>();
 					File file = new File(rpath);
 					if(file.exists()){

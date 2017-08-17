@@ -3,8 +3,8 @@ package com.tools.auto;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
@@ -20,6 +20,7 @@ import com.tools.utils.Tools;
  * 自动生成管理器。需要配置的参数：
  * <p>{@code packge} 包路径
  * <p>{@code dbPath} 数据库配置文件（必填）
+ * <p>{@code dbPathSecond} 数据库从库配置文件
  * <p>{@code prefix} 表前缀
  * <p>{@code separator} 表分隔符
  * <p>{@code chartset} 生成文件字符集，默认“utf-8”
@@ -34,12 +35,25 @@ public class AutoCreateManager {
 	private boolean overWrite = true;
 	private TableManager manager = null;
 	private String dbPath = ""; //数据库配置
+	private String dbPathSecond = ""; //数据库从库配置
 	private String prefix = ""; //数据表前缀
 	private String separator = ""; //数据表分隔符
 	private String chartset = "utf-8";//文件字符集
 	
 	public AutoCreateManager(){
 		
+	}
+	
+	public AutoCreateManager(Config config, ConfigDB dbConfig){
+		this.config = config;
+		String realPath = dbConfig.getDBPath();
+		String realPath2 = dbConfig.getDBPathSecond();
+		this.dbPath = realPath.substring(realPath.lastIndexOf("/")+1);
+		this.dbPathSecond = realPath2.substring(realPath2.lastIndexOf("/")+1);
+		this.prefix = dbConfig.getPrefix();
+		this.separator = dbConfig.getSeparator();
+		//绝对地址，不能用相对地址。因为创建的文件还没有刷新到项目里
+		manager = new TableManager(realPath);
 	}
 	
 	public AutoCreateManager(String packge, String dbPath){
@@ -75,6 +89,10 @@ public class AutoCreateManager {
 			this.dbPath = dbPath;
 			manager = new TableManager(dbPath);
 		}
+	}
+	
+	public void setDbPathSecond(String dbPathSecond){
+		this.dbPathSecond = dbPathSecond;
 	}
 	
 	public void setPrefix(String prefix){
@@ -275,16 +293,16 @@ public class AutoCreateManager {
 		System.out.println("end create base file.");
 	}
 	
+	
 	private void createEntityFile(String packName, Table table, String chartset){
 		System.out.println("start create entity file... " +packName+" "+table.getEntityName());
-		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + "Temp.txt";
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + table.getEntityName() + ".java"; //输出路径
+		InputStream in = getClass().getResourceAsStream("Temp.txt"); //模版
+		String outPath = Tools.getBaseSrcPath() + packName.replace(".", File.separator) + File.separator + table.getEntityName() + ".java"; //输出路径
 		BufferedWriter bw = null;
 		BufferedReader br = null;
 		File outFile = new File(outPath);
 		//如果文件已存在，并且不开启重写。结束创建。
-		if(outFile.exists() && !overWrite){
+		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
 		File pfile = outFile.getParentFile();
@@ -293,7 +311,7 @@ public class AutoCreateManager {
 		}
 		try {
 			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), chartset)); 
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), chartset)); 
+			br = new BufferedReader(new InputStreamReader(in, chartset)); 
 			List<String> content = new ArrayList<String>();
 			String line; 
 			while((line = br.readLine()) != null){ 
@@ -390,14 +408,13 @@ public class AutoCreateManager {
 	
 	private void createDaoFile(String packName, String tempName, String fileName, String chartset){
 		System.out.println("start create dao file... " +packName+" "+fileName);
-		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
+		InputStream in = getClass().getResourceAsStream(tempName + ".txt"); //模版
+		String outPath = Tools.getBaseSrcPath() + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
 		BufferedWriter bw = null;
 		BufferedReader br = null;
 		File outFile = new File(outPath);
 		//如果文件已存在，并且不开启重写。结束创建。
-		if(outFile.exists() && !overWrite){
+		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
 		File pfile = outFile.getParentFile();
@@ -406,7 +423,7 @@ public class AutoCreateManager {
 		}
 		try {
 			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), chartset)); 
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), chartset)); 
+			br = new BufferedReader(new InputStreamReader(in, chartset)); 
 			String line; 
 			boolean isBean = false;
 			while((line = br.readLine()) != null){ 
@@ -434,6 +451,9 @@ public class AutoCreateManager {
 				if(line.indexOf("{dbPath}") != -1){
 					line = line.replace("{dbPath}", dbPath);
 				}
+				if(line.indexOf("{dbPathSecond}") != -1){
+					line = line.replace("{dbPathSecond}", dbPathSecond);
+				}
 				bw.write(line); 
 				bw.newLine(); 
 			}
@@ -457,14 +477,13 @@ public class AutoCreateManager {
 	
 	private void createServiceFile(String packName, String tempName, String fileName, String chartset){
 		System.out.println("start create service file... " +packName+" "+fileName);
-		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
+		InputStream in = getClass().getResourceAsStream(tempName + ".txt"); //模版
+		String outPath = Tools.getBaseSrcPath() + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
 		BufferedWriter bw = null;
 		BufferedReader br = null;
 		File outFile = new File(outPath);
 		//如果文件已存在，并且不开启重写。结束创建。
-		if(outFile.exists() && !overWrite){
+		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
 		File pfile = outFile.getParentFile();
@@ -473,7 +492,7 @@ public class AutoCreateManager {
 		}
 		try {
 			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), chartset)); 
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), chartset)); 
+			br = new BufferedReader(new InputStreamReader(in, chartset)); 
 			String line; 
 			boolean isBean = false;
 			while((line = br.readLine()) != null){ 
@@ -523,10 +542,8 @@ public class AutoCreateManager {
 	
 	private void createDBFile(String packName, String fileName, String chartset){
 		System.out.println("start add db file... " +packName+" "+fileName);
-		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + "DB.txt";
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + "DB.java"; //输出路径
-		File inFile = new File(path);
+		InputStream in = getClass().getResourceAsStream("DB.txt"); //模版
+		String outPath = Tools.getBaseSrcPath() + packName.replace(".", File.separator) + File.separator + "DB.java"; //输出路径
 		File outFile = new File(outPath);
 		try {
 			boolean isExist = outFile.exists();
@@ -534,20 +551,20 @@ public class AutoCreateManager {
 			List<String> content = new ArrayList<String>();
 			String line;
 			//如果文件不存在，先创建模版。
-			if(!isExist){
+			if(!isExist || outFile.length() == 0){
 				//以只读方式打开并读取一行数据
-				RandomAccessFile rafRead = new RandomAccessFile(inFile, "r");
+				BufferedReader br = new BufferedReader(new InputStreamReader(in, chartset)); 
 				File pfile = outFile.getParentFile();
 				if(!pfile.exists()){
 					pfile.mkdirs();
 				}
-				while ((line = rafRead.readLine()) != null) {
+				while ((line = br.readLine()) != null) {
 					if(line.indexOf("package PK;") != -1){
 						line = "package " + packName + ";";
 					}
-					content.add(new String(line.getBytes("ISO-8859-1"), chartset));
+					content.add(line);
 				}
-				rafRead.close();
+				br.close();
 			}else{
 				while ((line = rafWrite.readLine()) != null) {
 					content.add(new String(line.getBytes("ISO-8859-1"), chartset));
@@ -585,14 +602,13 @@ public class AutoCreateManager {
 	
 	private void createServletFile(String packName, String tempName, String fileName, String chartset){
 		System.out.println("start create servlet file... " +packName+" "+fileName);
-		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
+		InputStream in = getClass().getResourceAsStream(tempName + ".txt"); //模版
+		String outPath = Tools.getBaseSrcPath() + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
 		BufferedWriter bw = null;
 		BufferedReader br = null;
 		File outFile = new File(outPath);
 		//如果文件已存在，并且不开启重写。结束创建。
-		if(outFile.exists() && !overWrite){
+		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
 		File pfile = outFile.getParentFile();
@@ -601,7 +617,7 @@ public class AutoCreateManager {
 		}
 		try {
 			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), chartset)); 
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), chartset)); 
+			br = new BufferedReader(new InputStreamReader(in, chartset)); 
 			String line; 
 			boolean isBean = false;
 			while((line = br.readLine()) != null){ 
@@ -649,14 +665,13 @@ public class AutoCreateManager {
 	
 	private void createControllerFile(String packName, String tempName, String fileName, String chartset){
 		System.out.println("start create controller file... " +packName+" "+fileName);
-		String srcPath = System.getProperty("user.dir") + File.separator + "src"; //src 路径
-		String path = getClass().getResource("").getPath().replace("build/classes", "src").replace("WEB-INF/classes", "src") + tempName + ".txt";
-		String outPath = srcPath + File.separator + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
+		InputStream in = getClass().getResourceAsStream(tempName + ".txt"); //模版路径
+		String outPath = Tools.getBaseSrcPath() + packName.replace(".", File.separator) + File.separator + fileName + ".java"; //输出路径
 		BufferedWriter bw = null;
 		BufferedReader br = null;
 		File outFile = new File(outPath);
 		//如果文件已存在，并且不开启重写。结束创建。
-		if(outFile.exists() && !overWrite){
+		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
 		File pfile = outFile.getParentFile();
@@ -665,7 +680,7 @@ public class AutoCreateManager {
 		}
 		try {
 			bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), chartset)); 
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(path), chartset)); 
+			br = new BufferedReader(new InputStreamReader(in, chartset)); 
 			String line; 
 			while((line = br.readLine()) != null){ 
 				//packge
@@ -723,7 +738,16 @@ public class AutoCreateManager {
 //        }
 
 		
-		AutoCreateManager test =  new AutoCreateManager("com.testAuto", "db.properties", "s_", "_");
+//		AutoCreateManager test =  new AutoCreateManager("com.testAuto", "db.properties", "s_", "_");
+//		test.start();
+		
+		String jdbcUrl = "jdbc:mysql://127.0.0.1:3306/auth?characterEncoding=utf8";
+		String user = "root";
+		String password = "123456";
+		String driverClass = "com.mysql.jdbc.Driver";
+		String prefix = "s_";
+		String separator = "_";
+		AutoCreateManager test =  new AutoCreateManager(new Config("com.testAuto"), new ConfigDB(jdbcUrl, user, password, driverClass, prefix, separator));
 		test.start();
 	}
 	
