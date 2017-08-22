@@ -1,5 +1,6 @@
 package com.tools.web;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,10 @@ public class RequstServlet extends HttpServlet {
 			}
 			return;
 		}
+		//监控
+		String filePath = Tools.getBasePath() + "logs/monitor" + File.separator + Tools.formatDate(null, "yyyyMMdd") + ".txt";
+		String str = Tools.formatDate() + "|"+ Tools.getIp(req) + "|" + reqPath;
+		Tools.fileWrite(filePath, str);		
 		
 		//allowed
 		for (RequestMappingData mappingData : mapping) {
