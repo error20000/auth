@@ -36,6 +36,15 @@ public class ConfigDB {
 		this.separator = separator;
 	}
 	
+	public ConfigDB(String jdbcUrl, String user, String password, String prefix, String separator){
+		this.jdbcUrl = jdbcUrl;
+		this.user = user;
+		this.password = password;
+		this.driverClass = Tools.getDriverClass(jdbcUrl);
+		this.prefix = prefix;
+		this.separator = separator;
+	}
+	
 	public ConfigDB(){
 		
 	}
@@ -107,7 +116,7 @@ public class ConfigDB {
 		System.out.println("end db properties... " + jdbcUrl);
 		return outPath;
 	}
-
+	
 	//TODO get set
 	public String getJdbcUrl() {
 		return jdbcUrl;

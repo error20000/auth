@@ -332,6 +332,102 @@ public class Tools {
 		return res;
 	}
 	
+	/**
+	 * 获取jdbc 的 driverClass
+	 * @param jdbc	jdbc地址
+	 * @return driverClass
+	 */
+	public static String getDriverClass(String jdbc){
+		String clss = "";
+		if(jdbc.startsWith("jdbc:odps")){
+			clss = "com.aliyun.odps.jdbc.OdpsDriver";
+			
+		}else if(jdbc.startsWith("jdbc:derby")){
+			clss = "org.apache.derby.jdbc.EmbeddedDriver";
+			
+		}else if(jdbc.startsWith("jdbc:mysql")){
+			clss = "com.mysql.jdbc.Driver ";
+			
+		}else if(jdbc.startsWith("jdbc:oracle")){
+			clss = "oracle.jdbc.driver.OracleDriver ";
+			
+		}else if(jdbc.startsWith("jdbc:microsoft")){
+			clss = "com.microsoft.jdbc.sqlserver.SQLServerDriver ";
+			
+		}else if(jdbc.startsWith("jdbc:sybase:Tds")){
+			clss = "com.sybase.jdbc2.jdbc.SybDriver ";
+			
+		}else if(jdbc.startsWith("jdbc:jtds")){
+			clss = "net.sourceforge.jtds.jdbc.Driver";
+			
+		}else if(jdbc.startsWith("jdbc:postgresql")){
+			clss = "org.postgresql.Driver";
+			
+		}else if(jdbc.startsWith("jdbc:fake")){
+			clss = "com.alibaba.druid.mock.MockDriver";
+			
+		}else if(jdbc.startsWith("jdbc:mock")){
+			clss = "com.alibaba.druid.mock.MockDriver";
+			
+		}else if(jdbc.startsWith("jdbc:hsqldb")){
+			clss = "org.hsqldb.jdbcDriver";
+			
+		}else if(jdbc.startsWith("jdbc:db2")){
+			clss = "COM.ibm.db2.jdbc.app.DB2Driver";
+			//DB2的JDBC Driver十分混乱，这个匹配不一定对
+			
+		}else if(jdbc.startsWith("jdbc:sqlite")){
+			clss = "org.sqlite.JDBC";
+			
+		}else if(jdbc.startsWith("jdbc:ingres")){
+			clss = "com.ingres.jdbc.IngresDriver";
+			
+		}else if(jdbc.startsWith("jdbc:h2")){
+			clss = "org.h2.Driver";
+			
+		}else if(jdbc.startsWith("jdbc:mckoi")){
+			clss = "com.mckoi.JDBCDriver";
+			
+		}else if(jdbc.startsWith("jdbc:cloudscape")){
+			clss = "COM.cloudscape.core.JDBCDriver";
+			
+		}else if(jdbc.startsWith("jdbc:informix-sqli")){
+			clss = "com.informix.jdbc.IfxDriver";
+			
+		}else if(jdbc.startsWith("jdbc:timesten")){
+			clss = "com.timesten.jdbc.TimesTenDriver";
+			
+		}else if(jdbc.startsWith("jdbc:as400")){
+			clss = "com.ibm.as400.access.AS400JDBCDriver";
+			
+		}else if(jdbc.startsWith("jdbc:sapdb")){
+			clss = "com.sap.dbtech.jdbc.DriverSapDB";
+			
+		}else if(jdbc.startsWith("jdbc:JSQLConnect")){
+			clss = "com.jnetdirect.jsql.JSQLDriver";
+			
+		}else if(jdbc.startsWith("jdbc:JTurbo")){
+			clss = "com.newatlanta.jturbo.driver.Driver";
+			
+		}else if(jdbc.startsWith("jdbc:firebirdsql")){
+			clss = "org.firebirdsql.jdbc.FBDriver";
+			
+		}else if(jdbc.startsWith("jdbc:interbase")){
+			clss = "interbase.interclient.Driver";
+			
+		}else if(jdbc.startsWith("jdbc:pointbase")){
+			clss = "com.pointbase.jdbc.jdbcUniversalDriver";
+			
+		}else if(jdbc.startsWith("jdbc:edbc")){
+			clss = "ca.edbc.jdbc.EdbcDriver";
+			
+		}else if(jdbc.startsWith("jdbc:mimer:multi1")){
+			clss = "com.mimer.jdbc.Driver";
+			
+		}
+		return clss;
+	}
+	
 	//TODO request相关
 	/**
 	 * 获取请求参数
@@ -1347,7 +1443,6 @@ public class Tools {
 		return null;
 	}
 
-	
 	public static void main(String[] args) {
 //		String imgstr = getImageStr("C:\\Users\\Administrator\\Desktop\\65.png");
 //		System.out.println(imgstr);

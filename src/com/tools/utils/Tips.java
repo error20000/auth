@@ -18,6 +18,7 @@ public enum Tips {
 	ERROR111(-111, "未登录"),
 	ERROR112(-112, "文件上传失败"),
 	ERROR113(-113, "{param}生成失败"),
+	ERROR114(-114, "{param}失败"),
 	
 	//验证类型
 	ERROR200(-200, "{param}无效/不合法"), 
@@ -33,6 +34,8 @@ public enum Tips {
 	ERROR210(-210, "{param}超过限制"),
 	ERROR211(-211, "{param}不能为空"),
 	ERROR212(-212, "不支持该格式"),
+	ERROR213(-213, "{param}不正确"),
+	ERROR214(-214, "{param}已过期"),
 	
 	
 	//提示类型
