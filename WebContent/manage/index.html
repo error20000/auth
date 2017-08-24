@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="css/animate.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link href="https://cdn.bootcss.com/iview/2.1.0/styles/iview.css" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+  <div class="layout" :class="{'layout-hide-text': spanLeft < 5}">
+        <Row type="flex">
+            <i-col :span="spanLeft" class="layout-menu-left">
+                <Menu active-name="1" theme="dark" width="auto">
+                    <div class="layout-logo-left"></div>
+                    <Menu-item name="1">
+                        <Icon type="ios-navigate" :size="iconSize"></Icon>
+                        <span class="layout-text">选项 1</span>
+                    </Menu-item>
+                    <Menu-item name="2">
+                        <Icon type="ios-keypad" :size="iconSize"></Icon>
+                        <span class="layout-text">选项 2</span>
+                    </Menu-item>
+                    <Menu-item name="3">
+                        <Icon type="ios-analytics" :size="iconSize"></Icon>
+                        <span class="layout-text">选项 3</span>
+                    </Menu-item>
+                </Menu>
+            </i-col>
+            <i-col :span="spanRight">
+                <div class="layout-header">
+                    <i-button type="text" @click="toggleClick">
+                        <Icon type="navicon" size="32"></Icon>
+                    </i-button>
+                </div>
+                <div class="layout-breadcrumb">
+                    <Breadcrumb>
+                        <Breadcrumb-item href="#">首页</Breadcrumb-item>
+                        <Breadcrumb-item href="#">应用中心</Breadcrumb-item>
+                        <Breadcrumb-item>某应用</Breadcrumb-item>
+                    </Breadcrumb>
+                </div>
+                <div class="layout-content">
+                    <div class="layout-content-main">内容区域</div>
+                </div>
+                <div class="layout-copy">
+                    2011-2016 &copy; TalkingData
+                </div>
+            </i-col>
+        </Row>
+    </div>
+    
+  </div>
+</body>
+  <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js" type="text/javascript"></script>
+  <!-- 先引入 Vue -->
+  <script src="https://cdn.bootcss.com/vue/2.3.4/vue.js" type="text/javascript"></script>
+  <!-- 引入组件库 -->
+  <script src="https://cdn.bootcss.com/iview/2.1.0/iview.js" type="text/javascript"></script>
+  <script type="text/javascript" src="js/tools.js"></script>
+  <script type="text/javascript" src="js/index.js"></script>
+</html>
