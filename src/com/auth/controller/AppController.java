@@ -100,7 +100,7 @@ public class AppController{
 无效路径  2015-11-27T03:43:03.481Z  174.37.31.187  /badPath.html  */
 
 		//写入文件
-		String rpath = Tools.getBsaePath() + "attacks/" + getClass().getName();
+		String rpath = Tools.getBasePath() + "attacks/" + getClass().getName();
 		File file = new File(rpath);
 		Tools.fileWrite(file, content);
 		return;
