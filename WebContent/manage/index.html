@@ -9,10 +9,10 @@
 </head>
 <body>
   <div id="app">
-  <div class="layout" :class="{'layout-hide-text': spanLeft < 5}">
-        <Row type="flex">
+  <div class="layout" :class="{'layout-hide-text': spanLeft < 3}">
+        <Row class="layout-row" type="flex">
             <i-col :span="spanLeft" class="layout-menu-left">
-                <Menu active-name="1" theme="dark" width="auto">
+                <!-- <Menu active-name="1" theme="dark" width="auto">
                     <div class="layout-logo-left"></div>
                     <Menu-item name="1">
                         <Icon type="ios-navigate" :size="iconSize"></Icon>
@@ -26,7 +26,43 @@
                         <Icon type="ios-analytics" :size="iconSize"></Icon>
                         <span class="layout-text">选项 3</span>
                     </Menu-item>
-                </Menu>
+                </Menu> -->
+                <i-menu theme="dark" :open-names="['1']" accordion mode="horizontal">
+                	<div class="layout-logo-left"></div>
+	                <Submenu name="1">
+	                    <template slot="title">
+	                        <Icon type="ios-paper"></Icon>
+	                        		内容管理
+	                    </template>
+	                    <Menu-item class="layout-text" name="1-1">文章管理</Menu-item>
+	                    <Menu-item class="layout-text" name="1-2">评论管理</Menu-item>
+	                    <Menu-item class="layout-text" name="1-3">举报管理</Menu-item>
+	                </Submenu>
+	                <Submenu name="2">
+	                    <template slot="title">
+	                        <Icon type="ios-people"></Icon>
+	                        用户管理
+	                    </template>
+	                    <Menu-item name="2-1">新增用户</Menu-item>
+	                    <Menu-item name="2-2">活跃用户</Menu-item>
+	                </Submenu>
+	                <Submenu name="3">
+	                    <template slot="title">
+	                        <Icon type="stats-bars"></Icon>
+	                        统计分析
+	                    </template>
+	                    <Menu-group title="使用">
+	                        <Menu-item name="3-1">新增和启动</Menu-item>
+	                        <Menu-item name="3-2">活跃分析</Menu-item>
+	                        <Menu-item name="3-3">时段分析</Menu-item>
+	                    </Menu-group>
+	                    <Menu-group title="留存">
+	                        <Menu-item name="3-4">用户留存</Menu-item>
+	                        <Menu-item name="3-5">流失用户</Menu-item>
+	                    </Menu-group>
+	                </Submenu>
+	            </i-menu>
+                
             </i-col>
             <i-col :span="spanRight">
                 <div class="layout-header">

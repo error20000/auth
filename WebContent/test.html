@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+<head>
+    <meta charset="utf-8">
+    <title>iview example</title>
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body style="height: 100%;">
+<div id="app" style="height: 100%;">
+    <button onclick="showHeight()">Click me!</button>
+    <input type="text" onfocus="showHeight2()" id="test" style="position: absolute;left: 0px;bottom: 0px;"/>
+</div>
+<script>
+    function showHeight(){
+    	alert(document.documentElement.clientHeight);
+    	alert(window.innerHeight);
+    	alert(window.screen.availHeight);
+    	alert(window.screen.height);
+    }
+    function showHeight2(){
+    	setTimeout(() => {
+    		document.getElementById('test').value = document.documentElement.clientHeight;
+    		document.getElementById('test').value += "|" + window.innerHeight;
+    	document.getElementById('test').value += "|" + window.screen.availHeight;
+    	document.getElementById('test').value += "|" + window.screen.height;
+		}, 1000);
+    }
+    window.addEventListener('resize', function () {
+    	setTimeout(function () {
+            console.log('03');
+            document.activeElement.scrollIntoViewIfNeeded();
+          }, 1000);
+    });
+  </script>
+</body>
+</html>

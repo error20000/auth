@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="css/animate.css">
+  <link rel="stylesheet" href="css/table.css">
+  <!-- <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css"> -->
+  <link href="https://cdn.bootcss.com/element-ui/1.3.7/theme-default/index.css" rel="stylesheet">
+</head>
+<body class="animated fadeInRight">
+  <div id="app">
+    <section>
+		<!--工具条-->
+		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+			<el-col :span="6" >
+				<el-form :inline="true" :model="filters">
+					<el-form-item>
+						<!-- <el-button type="primary" v-on:click="handleAdd">新增</el-button> -->
+					</el-form-item>
+				</el-form>
+			</el-col>
+			<el-col :span="18">
+				<el-form :inline="true" :model="filters" style="float: right;">
+					<!--<el-form-item>
+						<el-input v-model="filters.name" placeholder="名称"></el-input>
+					</el-form-item>-->
+					<el-form-item>
+						<el-button type="primary" v-on:click="getList">查询</el-button>
+					</el-form-item>
+				</el-form>
+			</el-col>
+		</el-col>
+
+		<!--列表-->
+		<el-table :data="list" highlight-current-row border v-loading="listLoading" @selection-change="selsChange" style="width: 100%;" class="mytable" >
+			<el-table-column type="selection" width="55">
+			</el-table-column>
+			<el-table-column label="帖子Id" prop="artId" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column fixed="left" label="评论Id" prop="commentId" width="100" sortable>
+			</el-table-column>
+			<el-table-column label="PID" prop="pid" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="回复时间" prop="timeCreate" min-width="200" sortable :formatter="(r,c) => { return formatDate(r.timeCreate);}">
+			</el-table-column>
+			<el-table-column label="回复者" prop="fromPlayerId" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="被回复者" prop="toPlayerId" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="回复内容" prop="content" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="是否删除" prop="isDelete" min-width="100" sortable :formatter="(r,c) => { return r.isDelete ? '删除': '正常';}">
+			</el-table-column>
+			<el-table-column label="是否审核" prop="isCheck" min-width="100" sortable :formatter="(r,c) => { return r.isCheck == 0 ? '未审核': r.isCheck == 1 ? '审核通过' : '审核不通过';}">
+			</el-table-column>
+			<el-table-column label="审核时间" prop="timeCheck" min-width="200" sortable :formatter="(r,c) => { return r.timeCheck ? formatDate(r.timeCheck) : '';}">
+			</el-table-column>
+			<el-table-column label="审核人Id" prop="checkMid" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="奖励分数" prop="cPlayerAward" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="to奖励分数" prop="toPlayerAward" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="点赞数" prop="countThumbsUp" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="被举报的次数" prop="countReport" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column label="楼层" prop="floor" min-width="100" sortable>
+			</el-table-column>
+			<el-table-column fixed="right" label="操作" width="250">
+				<template scope="scope">
+				</template>
+				<template scope="scope">
+					<template v-if="scope.row.isDelete">
+						<el-tag>已删除</el-tag>
+						<el-button type="danger" size="small" @click="handleRealDel(scope.$index, scope.row)">彻底删除</el-button>
+					</template>
+					<template v-else>
+						<el-button size="small" @click="handleView(scope.$index, scope.row)">查看</el-button>
+						<el-button size="small" @click="handleAuth(scope.$index, scope.row)">{{scope.row.isCheck == 0 ? "审　核" : scope.row.isCheck == 1 ? "已通过":"未通过" }}</el-button>
+						<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+					</template>
+				</template>
+			</el-table-column>
+		</el-table>
+
+		<!--工具条-->
+		<el-col :span="24" class="toolbar">
+			<!-- <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button> -->
+			<el-pagination layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange" :page-sizes="[10, 20, 50, 100]" :page-size="rows" :total="total" style="float:right;">
+			</el-pagination>
+		</el-col>
+
+		<!--查看界面-->
+		<el-dialog title="查看" v-model="viewFormVisible" :close-on-click-modal="false">
+			<el-form :model="viewForm" label-width="100px" ref="viewForm">
+				<el-form-item label="帖子Id：" prop="artId">
+					<div v-html="viewForm.artId"></div>
+				</el-form-item>
+				<el-form-item label="评论Id：" prop="commentId">
+					<div v-html="viewForm.commentId"></div>
+				</el-form-item>
+				<el-form-item label="PID：" prop="pid">
+					<div v-html="viewForm.pid"></div>
+				</el-form-item>
+				<el-form-item label="回复者：" prop="fromPlayerId">
+					<div v-html="viewForm.fromPlayerId"></div>
+				</el-form-item>
+				<el-form-item label="被回复者：" prop="toPlayerId">
+					<div v-html="viewForm.toPlayerId"></div>
+				</el-form-item>
+				<el-form-item label="是否删除：" prop="isDelete">
+					<div v-html="viewForm.isDelete ? '删除': '正常'"></div>
+				</el-form-item>
+				<el-form-item label="是否审核：" prop="isCheck">
+					<div v-html="viewForm.isCheck == 0 ? '未审核': viewForm.isCheck == 1 ? '审核通过' : '审核不通过'"></div>
+				</el-form-item>
+				<el-form-item label="审核时间：" prop="timeCheck">
+					<div v-html="viewForm.timeCheck ? formatDate(viewForm.timeCheck) : ''"></div>
+				</el-form-item>
+				<el-form-item label="审核人Id：" prop="checkMid">
+					<div v-html="viewForm.checkMid"></div>
+				</el-form-item>
+				<el-form-item label="奖励分数：" prop="cPlayerAward">
+					<div v-html="viewForm.cPlayerAward"></div>
+				</el-form-item>
+				<el-form-item label="to奖励分数：" prop="toPlayerAward">
+					<div v-html="viewForm.toPlayerAward"></div>
+				</el-form-item>
+				<el-form-item label="点赞数：" prop="countThumbsUp">
+					<div v-html="viewForm.countThumbsUp"></div>
+				</el-form-item>
+				<el-form-item label="被举报的次数：" prop="countReport">
+					<div v-html="viewForm.countReport"></div>
+				</el-form-item>
+				<el-form-item label="楼层：" prop="floor">
+					<div v-html="viewForm.floor"></div>
+				</el-form-item>
+				<el-form-item label="回复内容：" prop="content">
+					<div v-html="viewForm.content"></div>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="viewFormVisible = false">关闭</el-button>
+			</div>
+		</el-dialog>
+		
+		<!--审核界面-->
+		<el-dialog title="查看" v-model="authFormVisible" :close-on-click-modal="false">
+			<el-form :model="viewForm" label-width="100px" ref="viewForm">
+				<el-form-item label="帖子Id：" prop="artId">
+					<div v-html="viewForm.artId"></div>
+				</el-form-item>
+				<el-form-item label="评论Id：" prop="commentId">
+					<div v-html="viewForm.commentId"></div>
+				</el-form-item>
+				<el-form-item label="PID：" prop="pid">
+					<div v-html="viewForm.pid"></div>
+				</el-form-item>
+				<el-form-item label="回复者：" prop="fromPlayerId">
+					<div v-html="viewForm.fromPlayerId"></div>
+				</el-form-item>
+				<el-form-item label="被回复者：" prop="toPlayerId">
+					<div v-html="viewForm.toPlayerId"></div>
+				</el-form-item>
+				<el-form-item label="回复内容：" prop="content">
+					<div v-html="viewForm.content"></div>
+				</el-form-item>
+			</el-form>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="authFormVisible = false">关闭</el-button>
+				<el-button type="primary" @click.native="authSubmit(1)" :loading="authLoading">通过</el-button>
+				<el-button type="primary" @click.native="authSubmit(2)" :loading="authLoading">不通过</el-button>
+			</div>
+		</el-dialog>
+		
+	</section>
+  </div>
+</body>
+  <script src="js/jquery-3.1.1.js"></script>
+  <!-- 先引入 Vue -->
+  <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
+  <script src="https://cdn.bootcss.com/vue/2.3.4/vue.js"></script>
+  <script src="https://cdn.bootcss.com/axios/0.16.2/axios.min.js"></script>
+  <!-- 引入组件库 -->
+  <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
+  <script src="https://cdn.bootcss.com/element-ui/1.3.7/index.js"></script>
+  <script type="text/javascript" src="js/reply.js"></script>
+    
+</html>
