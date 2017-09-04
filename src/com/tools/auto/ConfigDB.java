@@ -76,6 +76,7 @@ public class ConfigDB {
 			System.out.println(fileName+" 已存在！！！");
 			return outPath;
 		}
+		System.out.println("output file... " +outPath);
 		File pfile = outFile.getParentFile();
 		if(!pfile.exists()){
 			pfile.mkdirs();

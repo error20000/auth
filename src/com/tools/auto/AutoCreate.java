@@ -305,6 +305,7 @@ public class AutoCreate {
 		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
+		System.out.println("output file... " +outPath);
 		File pfile = outFile.getParentFile();
 		if(!pfile.exists()){
 			pfile.mkdirs();
@@ -417,6 +418,7 @@ public class AutoCreate {
 		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
+		System.out.println("output file... " +outPath);
 		File pfile = outFile.getParentFile();
 		if(!pfile.exists()){
 			pfile.mkdirs();
@@ -486,6 +488,7 @@ public class AutoCreate {
 		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
+		System.out.println("output file... " +outPath);
 		File pfile = outFile.getParentFile();
 		if(!pfile.exists()){
 			pfile.mkdirs();
@@ -545,6 +548,7 @@ public class AutoCreate {
 		InputStream in = getClass().getResourceAsStream("DB.txt"); //模版
 		String outPath = Tools.getBaseSrcPath() + packName.replace(".", File.separator) + File.separator + "DB.java"; //输出路径
 		File outFile = new File(outPath);
+		System.out.println("output file... " +outPath);
 		try {
 			boolean isExist = outFile.exists();
 			RandomAccessFile rafWrite = new RandomAccessFile(outFile, "rw"); 
@@ -611,6 +615,7 @@ public class AutoCreate {
 		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
+		System.out.println("output file... " +outPath);
 		File pfile = outFile.getParentFile();
 		if(!pfile.exists()){
 			pfile.mkdirs();
@@ -674,6 +679,7 @@ public class AutoCreate {
 		if(outFile.exists() && outFile.length() != 0 && !overWrite){
 			return;
 		}
+		System.out.println("output file... " +outPath);
 		File pfile = outFile.getParentFile();
 		if(!pfile.exists()){
 			pfile.mkdirs();

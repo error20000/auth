@@ -948,34 +948,49 @@ public class Tools {
 	 * 获取项目地址
 	 */
 	public static String getBasePath() {
-		String base = Tools.class.getResource("/").getPath().replace("/build/classes/", "").replace("/WEB-INF/classes/", "").replace("/target/classes/", "");
-        return base+"/";
+		/*String base = Tools.class.getResource("/").getPath().replace("/build/classes/", "").replace("/WEB-INF/classes/", "").replace("/target/classes/", "");
+        return base+"/";*/
+		return System.getProperty("user.dir") + "/";
     }
 	
 	/**
 	 * 获取项目src地址
 	 */
 	public static String getBaseSrcPath() {
-		String base = Tools.class.getResource("/").getPath();
+		/*String base = Tools.class.getResource("/").getPath();
 		if(base.indexOf("/target/classes/") != -1){ //maven
 			base = base.replace("/target/classes/", "") + "/src/main/java/";
 		}else{ // eclipse  myeclipse
 			base = base.replace("/build/classes/", "").replace("/WEB-INF/classes/", "") + "/src/";
 		}
-        return base;
+        return base;*/
+		String base = Tools.class.getResource("/").getPath();
+		if(base.indexOf("/target/") != -1){ //maven
+			base = System.getProperty("user.dir") + "/src/main/java/";
+		}else{ // eclipse  myeclipse
+			base = System.getProperty("user.dir") + "/src/";
+		}
+		return base;
     }
 	
 	/**
 	 * 获取项目src地址
 	 */
 	public static String getBaseResPath() {
-		String base = Tools.class.getResource("/").getPath();
+		/*String base = Tools.class.getResource("/").getPath();
 		if(base.indexOf("/target/classes/") != -1){ //maven
 			base = base.replace("/target/classes/", "") + "/src/main/resources/";
 		}else{ // eclipse  myeclipse
 			base = base.replace("/build/classes/", "").replace("/WEB-INF/classes/", "") + "/src/";
 		}
-        return base;
+        return base;*/
+		String base = Tools.class.getResource("/").getPath();
+		if(base.indexOf("/target/") != -1){ //maven
+			base = System.getProperty("user.dir") + "/src/main/resources/";
+		}else{ // eclipse  myeclipse
+			base = System.getProperty("user.dir") + "/src/";
+		}
+		return base;
     }
 	
 	//TODO 文件
