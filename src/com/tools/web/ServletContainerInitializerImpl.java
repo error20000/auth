@@ -248,7 +248,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 							List<WatchEvent<?>> watchEvents = key.pollEvents();  
 							for(WatchEvent<?> event : watchEvents){  
 								//TODO 根据事件类型采取不同的操作。。。。。。。  
-								context.log(this.getClass().getName()+": ["+event.context()+"]文件发生了["+event.kind()+"]事件"); 
+								context.log(this.getClass().getName()+": ["+event.context()+"]文件发生了["+event.kind()+"]事件, path " + dir.toString()); 
 								//如果文件变了，重新载入
 								List<String> change = Tools.fileReader(file);
 								for (String str : change) {

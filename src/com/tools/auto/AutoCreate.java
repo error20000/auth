@@ -32,13 +32,14 @@ import com.tools.utils.Tools;
 public class AutoCreate {
 	
 	private Config config =  new Config();
-	private boolean overWrite = true;
+	private boolean overWrite = false;
 	private TableManager manager = null;
 	private String dbPath = ""; //数据库配置
 	private String dbPathSecond = ""; //数据库从库配置
 	private String prefix = ""; //数据表前缀
 	private String separator = ""; //数据表分隔符
 	private String chartset = "utf-8";//文件字符集
+	private String reqPrefix = "api"; //请求前缀
 	
 	public AutoCreate(){
 		
@@ -106,6 +107,16 @@ public class AutoCreate {
 	public void setChartset(String chartset){
 		this.chartset = chartset;
 	} 
+	
+	public void setOverWrite(boolean overWrite){
+		this.overWrite = overWrite;
+	} 
+	
+	public void setReqPrefix(String reqPrefix){
+		if(!Tools.isNullOrEmpty(reqPrefix)){
+			this.reqPrefix = reqPrefix;
+		}
+	}
 	
 	/**
 	 * 整库创建
@@ -331,6 +342,8 @@ public class AutoCreate {
 				content.add(line);
 			}
 			//遍历字段
+			boolean priFlag = true; //判断PrimaryKey是否已添加
+			boolean priTypeFlag = true; //判断PrimaryKeyType是否已添加
 			List<Structure> sList = table.getTableInfo();
 			for (int m = sList.size() - 1; m >= 0; m--) {
 				Structure structure = sList.get(m);
@@ -339,8 +352,14 @@ public class AutoCreate {
 					if("auto_increment".equals(structure.getExtra())){
 						for (int i = 0; i < content.size(); i++) {
 							if("//import".equals(content.get(i).trim())){
-								content.add(i+1, "import com.tools.jdbc.PrimaryKey;");
-								content.add(i+2, "import com.tools.jdbc.PrimaryKeyType;");
+								if(priFlag){
+									content.add(i+1, "import com.tools.jdbc.PrimaryKey;");
+									priFlag = false;
+								}
+								if(priTypeFlag){
+									content.add(i+2, "import com.tools.jdbc.PrimaryKeyType;");
+									priTypeFlag = false;
+								}
 							}else if("//field".equals(content.get(i).trim())){
 								content.add(i+1, "	@PrimaryKey(type=PrimaryKeyType.AUTO_INCREMENT)");
 								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
@@ -350,7 +369,10 @@ public class AutoCreate {
 					}else{
 						for (int i = 0; i < content.size(); i++) {
 							if("//import".equals(content.get(i).trim())){
-								content.add(i+1, "import com.tools.jdbc.PrimaryKey;");
+								if(priFlag){
+									content.add(i+1, "import com.tools.jdbc.PrimaryKey;");
+									priFlag = false;
+								}
 							}else if("//field".equals(content.get(i).trim())){
 								content.add(i+1, "	@PrimaryKey");
 								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
@@ -707,6 +729,9 @@ public class AutoCreate {
 				//mapping
 				if(line.indexOf("{path}") != -1){
 					line = line.replace("{path}", en.toLowerCase());
+				}
+				if(line.indexOf("{reqPrefix}") != -1){
+					line = line.replace("{reqPrefix}", reqPrefix);
 				}
 				
 				bw.write(line); 

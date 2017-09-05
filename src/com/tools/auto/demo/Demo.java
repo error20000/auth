@@ -4,7 +4,7 @@ import com.tools.auto.AutoCreateManager;
 import com.tools.auto.Config;
 import com.tools.auto.ConfigDB;
 
-public class Tools {
+public class Demo {
 
 	public static void main(String[] args) {
 		String jdbcUrl = "jdbc:mysql://127.0.0.1:3306/auth?characterEncoding=utf8";

@@ -32,7 +32,7 @@ import com.tools.web.annotation.RequestMapping;
  *
  */
 @Controller
-@RequestMapping(name="TempController", path={"/api/{path}"})
+@RequestMapping(name="TempController", path={"/{reqPrefix}/{path}"})
 public class TempController{
 	
 	private TempService service = new TempServiceImpl();
@@ -157,6 +157,7 @@ public class TempController{
 
 		String page = req.getParameter("page");
 		String rows = req.getParameter("rows");
+		String keywords = req.getParameter("keywords");
 		//验证
 		Map<String, Object> vMap = verifyQuery(req);
 		if(vMap != null){
@@ -173,6 +174,12 @@ public class TempController{
 		//执行
 		JSONObject json = new JSONObject();
 		Map<String, Object> condition = Tools.getReqParamsToMap(req);
+		//去除无用参数
+		condition.remove("page");
+		condition.remove("rows");
+		condition.remove("keywords");
+		//TODO 需要自己修改关键字查询
+		
 		int start = "0".equals(page) ? 0 : (Tools.parseInt(page) - 1 ) * Tools.parseInt(rows);
 		List<Temp> res = service.findList(condition, start, Tools.parseInt(rows));
 		long total = service.size(condition);

@@ -29,29 +29,69 @@ public class AutoCreateManager {
 		autoCreate = new AutoCreate(packge, dbPath, prefix, separator);
 	}
 	
+	/**
+	 * 
+	 * @param packge
+	 */
 	public void setPackge(String packge){
 		autoCreate.setPackge(packge);
 	} 
 	
+	/**
+	 * 数据库配置
+	 * @param dbPath	数据库地址
+	 */
 	public void setDbPath(String dbPath){
 		autoCreate.setDbPath(dbPath);
 	}
 	
+	/**
+	 * 数据库从库配置
+	 * @param dbPathSecond	数据库从库地址
+	 */
 	public void setDbPathSecond(String dbPathSecond){
 		autoCreate.setDbPathSecond(dbPathSecond);
 	}
 	
+	/**
+	 * 数据表前缀
+	 * @param prefix	数据表前缀
+	 */
 	public void setPrefix(String prefix){
 		autoCreate.setPrefix(prefix);
 	} 
 	
+	/**
+	 * 数据表分隔符
+	 * @param separator	数据表分隔符
+	 */
 	public void setSeparator(String separator){
 		autoCreate.setSeparator(separator);
 	} 
 	
+	/**
+	 * 文件字符集
+	 * @param chartset 文件字符集，默认：utf-8
+	 */
 	public void setChartset(String chartset){
 		autoCreate.setChartset(chartset);
 	} 
+	
+	/**
+	 * 是否重写
+	 * @param overWrite	已生成文件是否重新生成
+	 */
+	public void setOverWrite(boolean overWrite){
+		autoCreate.setOverWrite(overWrite);
+	} 
+	
+	/**
+	 * request请求前缀
+	 * @param reqPrefix 请求前缀，默认：api
+	 */
+	public void setReqPrefix(String reqPrefix){
+		autoCreate.setReqPrefix(reqPrefix);
+	}
 	
 	/**
 	 * 整库创建

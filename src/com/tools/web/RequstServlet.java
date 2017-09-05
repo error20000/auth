@@ -59,6 +59,7 @@ public class RequstServlet extends HttpServlet {
 			@Override
 			public void run() {
 				dispatch(req, resp);
+				async.complete();
 			}
 		});
 		
@@ -155,6 +156,8 @@ public class RequstServlet extends HttpServlet {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				//当匹配上，跳出循环
+				break; 
 			}
 		}
 		
