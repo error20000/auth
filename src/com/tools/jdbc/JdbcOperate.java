@@ -19,7 +19,7 @@ import java.util.Map;
 public class JdbcOperate {
 
 	private DataSource	dataSource;
-	private Connection	connection;
+//	private Connection	connection; //Connection 不能公有。多线程、多任务，其中一个关闭了连接，剩余的会抛异常。所以注销。
 	private boolean		isTrancation;
 
 	/**
@@ -48,13 +48,26 @@ public class JdbcOperate {
 	 * @throws SQLException SQL 异常
 	 */
 	public Connection getConnection() throws SQLException {
-		//如果连接不存在,或者连接已关闭则重取一个连接
-		if (connection == null || connection.isClosed()) {
-			connection = dataSource.getConnection();
-			//如果是事务模式,则将自动提交设置为 false
-			if (isTrancation) {
-				connection.setAutoCommit(false);
+		
+		/*// 非事物模式，获取连接（因为关闭了连接）
+		if (!isTrancation) {
+			return dataSource.getConnection();
+		} else {
+			//如果连接不存在,或者连接已关闭则重取一个连接
+			if (connection == null || connection.isClosed()) {
+				connection = dataSource.getConnection();
+				//如果是事务模式,则将自动提交设置为 false
+				if (isTrancation) {
+					connection.setAutoCommit(false);
+				}
 			}
+			return connection;
+		}*/
+		
+		Connection connection = dataSource.getConnection();
+		//如果是事务模式,则将自动提交设置为 false
+		if (isTrancation) {
+			connection.setAutoCommit(false);
 		}
 		return connection;
 	}
@@ -64,7 +77,7 @@ public class JdbcOperate {
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void commit(boolean isClose) throws SQLException{
+	public void commit(Connection connection, boolean isClose) throws SQLException{
 		connection.commit();
 		if(isClose) {
 			closeConnection(connection);
@@ -76,7 +89,7 @@ public class JdbcOperate {
 	 * @param isClose 是否关闭数据库连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void rollback(boolean isClose) throws SQLException{
+	public void rollback(Connection connection, boolean isClose) throws SQLException{
 		connection.rollback();
 		if(isClose) {
 			closeConnection(connection);
@@ -87,7 +100,7 @@ public class JdbcOperate {
 	 * 提交事物不关闭连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void commit() throws SQLException{
+	public void commit(Connection connection) throws SQLException{
 		connection.commit();
 	}
 
@@ -95,7 +108,7 @@ public class JdbcOperate {
 	 * 回滚事物不关闭连接
 	 * @throws SQLException SQL 异常
 	 */
-	public void rollback() throws SQLException{
+	public void rollback(Connection connection) throws SQLException{
 		connection.rollback();
 	}
 	
@@ -118,7 +131,7 @@ public class JdbcOperate {
 			return new ResultInfo(rs, this.isTrancation);
 		} catch (SQLException e) {
 			closeConnection(conn);
-//			System.out.println("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n");
+			System.out.println("Query excution SQL Error! \n SQL is : \n\t" + sqlText + ": \n\t " + e.getMessage() + "\n");
 		}
 		return null;
 	}

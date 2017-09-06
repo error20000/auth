@@ -104,7 +104,7 @@ public class TempController{
 			json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
 		}else{
-			json.put(ResultKey.CODE, Tips.ERROR0);
+			json.put(ResultKey.CODE, Tips.ERROR0.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR0.getDesc());
 		}
 		return json.toJSONString();
@@ -125,7 +125,7 @@ public class TempController{
 			json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
 		}else{
-			json.put(ResultKey.CODE, Tips.ERROR0);
+			json.put(ResultKey.CODE, Tips.ERROR0.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR0.getDesc());
 		}
 		return json.toJSONString();
@@ -146,7 +146,7 @@ public class TempController{
 			json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
 		}else{
-			json.put(ResultKey.CODE, Tips.ERROR0);
+			json.put(ResultKey.CODE, Tips.ERROR0.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR0.getDesc());
 		}
 		return json.toJSONString();

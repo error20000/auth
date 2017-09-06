@@ -86,7 +86,7 @@ public class TranslateSQL {
 		List<String> sqlParams = TranslateSQL.getSqlParams(sqlStr);
 		
 		//将没有提供查询参数的条件移除
-		//修改sql有安全隐患
+		//修改sql有安全隐患，所以注销这句。
 //		sqlStr = TranslateSQL.removeEmptyCondiction(sqlStr, sqlParams, params);
 
 		//获取preparedStatement可用的 SQL
@@ -206,11 +206,11 @@ public class TranslateSQL {
 		 
 		HashMap<String, Object> resultMap = new HashMap<String, Object>();
 		HashMap<String, Integer> columns = new HashMap<String, Integer>();
-		
 		//遍历结果集字段信息
-		int columnCount = resultset.getMetaData().getColumnCount();
+		ResultSetMetaData metaData = resultset.getMetaData();
+		int columnCount = metaData.getColumnCount();
 		for(int i = 1; i <= columnCount; i++){
-			columns.put(resultset.getMetaData().getColumnLabel(i), resultset.getMetaData().getColumnType(i));
+			columns.put(metaData.getColumnLabel(i), metaData.getColumnType(i));
 		}
 		//组装Map
 		for(Entry<String, Integer> columnEntry : columns.entrySet()){

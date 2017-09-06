@@ -550,7 +550,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			e.printStackTrace();
 			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
-		return 0;
+		return res;
 	}
 
 	//TODO delete
@@ -606,7 +606,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			e.printStackTrace();
 			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
-		return 0;
+		return res;
 	}
 
 	/**
@@ -659,7 +659,7 @@ public abstract class MysqlBaseDaoImpl<T> implements MysqlBaseDao<T> {
 			e.printStackTrace();
 			LogsTool.logSet(logPath+"/"+tableName, "【ERROR】exception: " + e.getMessage());
 		}
-		return 0;
+		return res;
 	}
 
 	/**

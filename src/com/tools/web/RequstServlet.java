@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.AsyncContext;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import com.tools.web.annotation.RequestMethod;
 
 public class RequstServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+
 
 	@Override
 	protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -194,6 +196,17 @@ public class RequstServlet extends HttpServlet {
 			break;
 		}
 		return method;
+	}
+	
+	
+	@Override
+	public void destroy() {
+		System.out.println("RequstServlet destroy...");
+	}
+
+	@Override
+	public void init(ServletConfig config) throws ServletException {
+		System.out.println("RequstServlet init...");
 	}
 
 }

@@ -70,6 +70,20 @@ public class Tools {
 	private static ExecutorService service = Executors.newFixedThreadPool(10);
 	private static Lock lock = new ReentrantLock();
 	
+	//可配置信息
+	public static String INIT_OUTPUT_CODE = ResultKey.CODE;//输出的code字段名
+	public static String INIT_OUTPUT_MSG = ResultKey.MSG; //输出的message字段名
+	public static String INIT_OUTPUT_DATA = ResultKey.DATA;//输出的data字段名
+	
+	public static String INIT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	public static String INIT_CHARSET_MANE = "utf-8";
+	public static String INIT_ATTACK_LOG_PATH = "attacks/request/";
+	
+	//TODO 可配置
+	public static void initTools() {
+		
+	}
+	
 	public static String getAuthUser() {
 		return AUTH_USER_SESSION;
 	}
@@ -167,7 +181,7 @@ public class Tools {
 	
 	/**
 	 * 格式化日期
-	 * @return 返回当前日期，格式："yyyy-MM-dd HH:mm:ss"
+	 * @return 返回当前日期，格式：INIT_DATE_FORMAT
 	 */
 	public static String formatDate(){
 		return formatDate(null);
@@ -176,16 +190,16 @@ public class Tools {
 	/**
 	 * 格式化日期
 	 * @param date 日期
-	 * @return 返回传入日期，格式："yyyy-MM-dd HH:mm:ss"
+	 * @return 返回传入日期，格式：INIT_DATE_FORMAT
 	 */
 	public static String formatDate(Date date){
-		return formatDate(date, "yyyy-MM-dd HH:mm:ss");
+		return formatDate(date, INIT_DATE_FORMAT);
 	}
 	
 	/**
 	 * 格式化日期
 	 * @param date 日期
-	 * @param str 返回日期格式，默认："yyyy-MM-dd HH:mm:ss"
+	 * @param str 返回日期格式，默认：INIT_DATE_FORMAT
 	 * @return 返回传入日期，传入格式。
 	 */
 	public static String formatDate(Date date, String str){
@@ -194,7 +208,7 @@ public class Tools {
 			date = calendar.getTime();
 //			date = new Date();
 		}
-		str = isNullOrEmpty(str) ? "yyyy-MM-dd HH:mm:ss" : str;
+		str = isNullOrEmpty(str) ? INIT_DATE_FORMAT : str;
 		return new SimpleDateFormat(str).format(date);
 	}
 	
@@ -295,7 +309,7 @@ public class Tools {
 	 * @return String 返回md5字符串
 	 */
 	public static String md5(String str) {
-		return md5(str, "utf-8");
+		return md5(str, INIT_CHARSET_MANE);
 	}
 	
 	/**
@@ -306,7 +320,7 @@ public class Tools {
 	 */
 	public static String md5(String str, String charsetName) {
 		try {
-			charsetName = isNullOrEmpty(charsetName) ? "utf-8" : charsetName;
+			charsetName = isNullOrEmpty(charsetName) ? INIT_CHARSET_MANE : charsetName;
 			return md5(str.getBytes(charsetName));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -491,25 +505,25 @@ public class Tools {
 		Map<String, Object> map = new HashMap<String, Object>();
 		
 		if(isNullOrEmpty(value)){
-			map.put(ResultKey.CODE, Tips.ERROR211.getCode());
-			map.put(ResultKey.MSG, Tips.ERROR211.getDesc(key));
-			map.put(ResultKey.DATA, "");
+			map.put(INIT_OUTPUT_CODE, Tips.ERROR211.getCode());
+			map.put(INIT_OUTPUT_MSG, Tips.ERROR211.getDesc(key));
+			map.put(INIT_OUTPUT_DATA, "");
 			return map;
 		}
 		//minLength 为 0 不参与长度验证
 		if(minLength > 0){
 			if(maxLength > 0){
 				if(!(value.length() >= minLength && value.length() <= maxLength)){
-					map.put(ResultKey.CODE, Tips.ERROR210.getCode());
-					map.put(ResultKey.MSG, Tips.ERROR210.getDesc(key));
-					map.put(ResultKey.DATA, "");
+					map.put(INIT_OUTPUT_CODE, Tips.ERROR210.getCode());
+					map.put(INIT_OUTPUT_MSG, Tips.ERROR210.getDesc(key));
+					map.put(INIT_OUTPUT_DATA, "");
 					return map;
 				}
 			}else{ //maxLength 为 0 不参与最大长度验证
 				if(!(value.length() >= minLength)){
-					map.put(ResultKey.CODE, Tips.ERROR210.getCode());
-					map.put(ResultKey.MSG, Tips.ERROR210.getDesc(key));
-					map.put(ResultKey.DATA, "");
+					map.put(INIT_OUTPUT_CODE, Tips.ERROR210.getCode());
+					map.put(INIT_OUTPUT_MSG, Tips.ERROR210.getDesc(key));
+					map.put(INIT_OUTPUT_DATA, "");
 					return map;
 				}
 			}
@@ -518,9 +532,9 @@ public class Tools {
 		if(isNumber){
 			String tmp = value.replaceAll("[^0-9]", "");
 			if(isNullOrEmpty(tmp) || tmp.length() != value.length()){
-				map.put(ResultKey.CODE, Tips.ERROR200.getCode());
-				map.put(ResultKey.MSG, Tips.ERROR200.getDesc(key));
-				map.put(ResultKey.DATA, "");
+				map.put(INIT_OUTPUT_CODE, Tips.ERROR200.getCode());
+				map.put(INIT_OUTPUT_MSG, Tips.ERROR200.getDesc(key));
+				map.put(INIT_OUTPUT_DATA, "");
 				return map;
 			}
 		}
@@ -569,14 +583,28 @@ public class Tools {
 	
 	/**
 	 * 记录SQL注入
-	 * @param path	文件路径，默认："/attacks/request/"
+	 * @param path	文件路径，默认：INIT_ATTACK_LOG_PATH
 	 * @param str	内容
 	 */
 	public static void attackRecord (String path, String str){
-		if(isNullOrEmpty(path)){
-			path = Tools.getBasePath() + "attacks/request/" + Tools.formatDate(null, "yyyyMMdd") + ".txt";
+		File file = new File(path);
+		if(file.exists()){
+			path = path + File.separator + Tools.formatDate(null, "yyyyMMdd") + ".txt";
+		}else{
+			path = Tools.getBasePath() + (isNullOrEmpty(path) ? INIT_ATTACK_LOG_PATH : path) + Tools.formatDate(null, "yyyyMMdd") + ".txt";
 		}
 		Tools.fileWrite(path, str);
+	}
+	
+	/**
+	 * 记录SQL注入
+	 * @param path	文件路径，默认：INIT_ATTACK_LOG_PATH
+	 * @param str	内容
+	 */
+	public static void attackRecord (String path, HttpServletRequest req, String name, String value){
+		//记录日志
+		String str = "参数值: {"+name+" : "+value+"}|"+attackType(value)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+(req.getQueryString() != null ? "?"+req.getQueryString() : "");
+		attackRecord("", str);
 	}
 
 	/**
@@ -595,7 +623,7 @@ public class Tools {
 			//参数名attack，需过滤
 			if(isAttack(name)){
 				//记录日志
-				String str = "参数名: "+attackType(name)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
+				String str = "参数名: "+attackType(name)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+(req.getQueryString() != null ? "?"+req.getQueryString() : "");
 				attackRecord("", str);
 				continue;
 			}
@@ -603,8 +631,7 @@ public class Tools {
 			String value = getReqParam(req, name);
 			if(isAttack(value)){
 				//记录日志
-				String str = "参数值: 参数 "+name+" , "+attackType(value)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
-				attackRecord("", str);
+				attackRecord("", req, name, value);
 			}
 			obj.put(name, value);
 		}
@@ -638,8 +665,7 @@ public class Tools {
 				String value = getReqParam(req, name);
 				if(isAttack(value)){
 					//记录日志
-					String str = "参数值: 参数 "+name+" , "+attackType(value)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
-					attackRecord("", str);
+					attackRecord("", req, name, value);
 				}
 				map.put(name, value);
 			}
@@ -669,8 +695,7 @@ public class Tools {
 					//参数值attack，可不过滤，使用的SQL预编译
 					if(isAttack(tmpValue)){
 						//记录日志
-						String str = "参数值: 参数 "+name+" , "+attackType(tmpValue)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
-						attackRecord("", str);
+						attackRecord("", req, name, tmpValue);
 					}
 					//格式化
 					switch (f.getType().getSimpleName()) {
@@ -736,8 +761,7 @@ public class Tools {
 					//参数值attack，可不过滤，使用的sql预编译
 					if(isAttack(tmpValue)){
 						//记录日志
-						String str = "参数值: 参数 "+name+" , "+attackType(tmpValue)+"|" + formatDate(null, "yyyy-MM-dd HH:mm:ss S") + "|"+getIp(req)+"|"+req.getRequestURI()+"?"+req.getQueryString();
-						attackRecord("", str);
+						attackRecord("", req, name, tmpValue);
 					}
 					//格式化
 					switch (f.getType().getSimpleName()) {
@@ -853,7 +877,7 @@ public class Tools {
 			if(cos){
 				resp.setHeader("Access-Control-Allow-Origin", "*");
 				resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-				resp.setHeader("Access-Control-Max-Age", "3600");
+				resp.setHeader("Access-Control-Max-Age", "36000");
 				resp.setHeader("Access-Control-Allow-Headers", "x-requested-with");
 			}
 			PrintWriter writer = resp.getWriter();
@@ -1024,7 +1048,7 @@ public class Tools {
 			@Override
 			public void run() {
 				lock.lock();
-				String charset = "utf-8";
+				String charset = INIT_CHARSET_MANE;
 				OutputStream out;
 				try {
 					//file.getParentFile().mkdirs();
@@ -1056,7 +1080,7 @@ public class Tools {
 		List<String> content = new ArrayList<String>();
 		if(file.exists()){
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), INIT_CHARSET_MANE));
 				String line;
 				while ((line = reader.readLine()) != null) {
 					content.add(line);
