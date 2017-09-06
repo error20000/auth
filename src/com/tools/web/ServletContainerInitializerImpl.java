@@ -24,6 +24,7 @@ import javax.servlet.annotation.HandlesTypes;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.tools.controller.AbstractBaseController;
+import com.tools.utils.CallBack;
 import com.tools.utils.Tools;
 import com.tools.web.annotation.Controller;
 import com.tools.web.annotation.RequestMapping;
@@ -239,33 +240,23 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 					for (String str : content) {
 						AllowReq.setContent(str.split(":")[0].trim(), str.split(":")[1].trim());
 					}
-					//监控文件变化
-					try {
-						WatchService watcher = FileSystems.getDefault().newWatchService();
-						Path dir = file.getParentFile().toPath();
-						while (true) {
-							WatchKey key = dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
-							List<WatchEvent<?>> watchEvents = key.pollEvents();  
-							for(WatchEvent<?> event : watchEvents){  
-								//TODO 根据事件类型采取不同的操作。。。。。。。  
-								context.log(this.getClass().getName()+": ["+event.context()+"]文件发生了["+event.kind()+"]事件, path " + dir.toString()); 
-								//如果文件变了，重新载入
-								List<String> change = Tools.fileReader(file);
-								for (String str : change) {
-									String[] tmp = str.split(":");
-									if(tmp.length > 1){
-										AllowReq.setContent(tmp[0].trim(), tmp[1].trim());
-									}
+					//监控文件变化，10s检测一次
+					Tools.fileWatch(file, 10, new CallBack() {
+						@Override
+						public void execute(Object obj) {
+							WatchEvent<?> event = (WatchEvent<?>) obj;
+							//TODO 根据事件类型采取不同的操作。。。。。。。  
+							context.log(this.getClass().getName()+": ["+event.context()+"]文件发生了["+event.kind()+"]事件, path " + file.getPath()); 
+							//如果文件变了，重新载入
+							List<String> change = Tools.fileReader(file);
+							for (String str : change) {
+								String[] tmp = str.split(":");
+								if(tmp.length > 1){
+									AllowReq.setContent(tmp[0].trim(), tmp[1].trim());
 								}
-							}  
-							key.reset();
-							//10s检测一次
-							Thread.sleep(10 * 1000);
+							}
 						}
-
-					} catch (Exception e) {
-					    System.err.println(e);
-					}
+					});
 				}
 			});
 			thread.start();

@@ -14,6 +14,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -71,16 +77,16 @@ public class Tools {
 	private static Lock lock = new ReentrantLock();
 	
 	//可配置信息
-	public static String INIT_OUTPUT_CODE = ResultKey.CODE;//输出的code字段名
-	public static String INIT_OUTPUT_MSG = ResultKey.MSG; //输出的message字段名
-	public static String INIT_OUTPUT_DATA = ResultKey.DATA;//输出的data字段名
+	public static String initOutputCode = ResultKey.CODE;//输出的code字段名，默认值：ResultKey.CODE
+	public static String initOutputMsg = ResultKey.MSG; //输出的message字段名，默认值：ResultKey.MSG
+	public static String initOutputData = ResultKey.DATA;//输出的data字段名，默认值：ResultKey.DATA
 	
-	public static String INIT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-	public static String INIT_CHARSET_MANE = "utf-8";
-	public static String INIT_ATTACK_LOG_PATH = "attacks/request/";
+	public static String initDateFormatStr = "yyyy-MM-dd HH:mm:ss";	//格式化时间的格式，默认值："yyyy-MM-dd HH:mm:ss"
+	public static String initCharsetName = "utf-8";	//统一字符编码，默认值："utf-8"
+	public static String initAttackLogPath = "attacks/request/";	//记录SQL注入日志文件路径，默认值："attacks/request/"
 	
-	//TODO 可配置
-	public static void initTools() {
+	//可配置信息
+	public static void initTips() {
 		
 	}
 	
@@ -181,7 +187,7 @@ public class Tools {
 	
 	/**
 	 * 格式化日期
-	 * @return 返回当前日期，格式：INIT_DATE_FORMAT
+	 * @return 返回当前日期，格式：initDateFormatStr
 	 */
 	public static String formatDate(){
 		return formatDate(null);
@@ -190,16 +196,16 @@ public class Tools {
 	/**
 	 * 格式化日期
 	 * @param date 日期
-	 * @return 返回传入日期，格式：INIT_DATE_FORMAT
+	 * @return 返回传入日期，格式：initDateFormatStr
 	 */
 	public static String formatDate(Date date){
-		return formatDate(date, INIT_DATE_FORMAT);
+		return formatDate(date, initDateFormatStr);
 	}
 	
 	/**
 	 * 格式化日期
 	 * @param date 日期
-	 * @param str 返回日期格式，默认：INIT_DATE_FORMAT
+	 * @param str 返回日期格式，默认：initDateFormatStr
 	 * @return 返回传入日期，传入格式。
 	 */
 	public static String formatDate(Date date, String str){
@@ -208,7 +214,7 @@ public class Tools {
 			date = calendar.getTime();
 //			date = new Date();
 		}
-		str = isNullOrEmpty(str) ? INIT_DATE_FORMAT : str;
+		str = isNullOrEmpty(str) ? initDateFormatStr : str;
 		return new SimpleDateFormat(str).format(date);
 	}
 	
@@ -309,7 +315,7 @@ public class Tools {
 	 * @return String 返回md5字符串
 	 */
 	public static String md5(String str) {
-		return md5(str, INIT_CHARSET_MANE);
+		return md5(str, initCharsetName);
 	}
 	
 	/**
@@ -320,7 +326,7 @@ public class Tools {
 	 */
 	public static String md5(String str, String charsetName) {
 		try {
-			charsetName = isNullOrEmpty(charsetName) ? INIT_CHARSET_MANE : charsetName;
+			charsetName = isNullOrEmpty(charsetName) ? initCharsetName : charsetName;
 			return md5(str.getBytes(charsetName));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -505,25 +511,25 @@ public class Tools {
 		Map<String, Object> map = new HashMap<String, Object>();
 		
 		if(isNullOrEmpty(value)){
-			map.put(INIT_OUTPUT_CODE, Tips.ERROR211.getCode());
-			map.put(INIT_OUTPUT_MSG, Tips.ERROR211.getDesc(key));
-			map.put(INIT_OUTPUT_DATA, "");
+			map.put(initOutputCode, Tips.ERROR211.getCode());
+			map.put(initOutputMsg, Tips.ERROR211.getDesc(key));
+			map.put(initOutputData, "");
 			return map;
 		}
 		//minLength 为 0 不参与长度验证
 		if(minLength > 0){
 			if(maxLength > 0){
 				if(!(value.length() >= minLength && value.length() <= maxLength)){
-					map.put(INIT_OUTPUT_CODE, Tips.ERROR210.getCode());
-					map.put(INIT_OUTPUT_MSG, Tips.ERROR210.getDesc(key));
-					map.put(INIT_OUTPUT_DATA, "");
+					map.put(initOutputCode, Tips.ERROR210.getCode());
+					map.put(initOutputMsg, Tips.ERROR210.getDesc(key));
+					map.put(initOutputData, "");
 					return map;
 				}
 			}else{ //maxLength 为 0 不参与最大长度验证
 				if(!(value.length() >= minLength)){
-					map.put(INIT_OUTPUT_CODE, Tips.ERROR210.getCode());
-					map.put(INIT_OUTPUT_MSG, Tips.ERROR210.getDesc(key));
-					map.put(INIT_OUTPUT_DATA, "");
+					map.put(initOutputCode, Tips.ERROR210.getCode());
+					map.put(initOutputMsg, Tips.ERROR210.getDesc(key));
+					map.put(initOutputData, "");
 					return map;
 				}
 			}
@@ -532,9 +538,9 @@ public class Tools {
 		if(isNumber){
 			String tmp = value.replaceAll("[^0-9]", "");
 			if(isNullOrEmpty(tmp) || tmp.length() != value.length()){
-				map.put(INIT_OUTPUT_CODE, Tips.ERROR200.getCode());
-				map.put(INIT_OUTPUT_MSG, Tips.ERROR200.getDesc(key));
-				map.put(INIT_OUTPUT_DATA, "");
+				map.put(initOutputCode, Tips.ERROR200.getCode());
+				map.put(initOutputMsg, Tips.ERROR200.getDesc(key));
+				map.put(initOutputData, "");
 				return map;
 			}
 		}
@@ -583,7 +589,7 @@ public class Tools {
 	
 	/**
 	 * 记录SQL注入
-	 * @param path	文件路径，默认：INIT_ATTACK_LOG_PATH
+	 * @param path	文件路径，默认：initAttackLogPath
 	 * @param str	内容
 	 */
 	public static void attackRecord (String path, String str){
@@ -591,14 +597,14 @@ public class Tools {
 		if(file.exists()){
 			path = path + File.separator + Tools.formatDate(null, "yyyyMMdd") + ".txt";
 		}else{
-			path = Tools.getBasePath() + (isNullOrEmpty(path) ? INIT_ATTACK_LOG_PATH : path) + Tools.formatDate(null, "yyyyMMdd") + ".txt";
+			path = Tools.getBasePath() + (isNullOrEmpty(path) ? initAttackLogPath : path) + Tools.formatDate(null, "yyyyMMdd") + ".txt";
 		}
 		Tools.fileWrite(path, str);
 	}
 	
 	/**
 	 * 记录SQL注入
-	 * @param path	文件路径，默认：INIT_ATTACK_LOG_PATH
+	 * @param path	文件路径，默认：initAttackLogPath
 	 * @param str	内容
 	 */
 	public static void attackRecord (String path, HttpServletRequest req, String name, String value){
@@ -1048,7 +1054,7 @@ public class Tools {
 			@Override
 			public void run() {
 				lock.lock();
-				String charset = INIT_CHARSET_MANE;
+				String charset = initCharsetName;
 				OutputStream out;
 				try {
 					//file.getParentFile().mkdirs();
@@ -1080,7 +1086,7 @@ public class Tools {
 		List<String> content = new ArrayList<String>();
 		if(file.exists()){
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), INIT_CHARSET_MANE));
+				BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), initCharsetName));
 				String line;
 				while ((line = reader.readLine()) != null) {
 					content.add(line);
@@ -1093,6 +1099,40 @@ public class Tools {
 		return content;
 	}
 	
+	/**
+	 * 检测文件变化
+	 * @param file	被检测文件
+	 * @param refrushTime	检测频率（s）
+	 * @param callback	回调函数
+	 */
+	public static void fileWatch(File file, int refrushTime, CallBack callback){
+		if(!file.exists()){
+			System.out.println("文件不存在！！！");
+			return;
+		}
+		if(refrushTime < 0){
+			System.out.println("检测频率为正数，单位秒！！！");
+			return;
+		}
+		//监控文件变化
+		try {
+			WatchService watcher = FileSystems.getDefault().newWatchService();
+			Path dir = file.getParentFile().toPath();
+			while (true) {
+				WatchKey key = dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+				List<WatchEvent<?>> watchEvents = key.pollEvents();  
+				for(WatchEvent<?> event : watchEvents){ 
+					//根据事件类型采取不同的操作。。。。。。。  
+					callback.execute(event);
+				}  
+				key.reset();
+				//检测频率
+				Thread.sleep(refrushTime * 1000);
+			}
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	}
 	
 	/**
 	 * 将base64编码字符串转换为图片
