@@ -556,7 +556,9 @@ public class Tools {
 	 */
 	public static boolean isAttack(String value){
 		boolean flag = false;
-		if(value.toLowerCase().matches(Attacks.sqlComment)){
+		if(isNullOrEmpty(value)){
+			flag = false;
+		}else if(value.toLowerCase().matches(Attacks.sqlComment)){
 			flag = true;
 		}else if(value.toLowerCase().matches(Attacks.sqlBatch)){
 			flag = true;
@@ -575,7 +577,9 @@ public class Tools {
 	 */
 	public static String attackType(String value){
 		String str = "";
-		if(value.toLowerCase().matches(Attacks.sqlComment)){
+		if(isNullOrEmpty(value)){
+			str = "";
+		}else if(value.toLowerCase().matches(Attacks.sqlComment)){
 			str = "SQL Comment Injection";
 		}else if(value.toLowerCase().matches(Attacks.sqlBatch)){
 			str = "SQL Batch Injection";
@@ -1103,7 +1107,7 @@ public class Tools {
 	 * 检测文件变化
 	 * @param file	被检测文件
 	 * @param refrushTime	检测频率（s）
-	 * @param callback	回调函数
+	 * @param callback	回调函数，参数：{@code WatchEvent<?>}
 	 */
 	public static void fileWatch(File file, int refrushTime, CallBack callback){
 		if(!file.exists()){

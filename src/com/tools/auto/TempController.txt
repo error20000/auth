@@ -155,9 +155,9 @@ public class TempController{
 	@RequestMapping(name="query", path={"/query"})
 	public String query(HttpServletRequest req, HttpServletResponse resp){
 
-		String page = req.getParameter("page");
-		String rows = req.getParameter("rows");
-		String keywords = req.getParameter("keywords");
+		String page = Tools.getReqParamSafe(req, "page");
+		String rows = Tools.getReqParamSafe(req, "rows");
+		String keywords = Tools.getReqParamSafe(req, "keywords");
 		//验证
 		Map<String, Object> vMap = verifyQuery(req);
 		if(vMap != null){
