@@ -22,11 +22,11 @@ public class JdbcOperateManager {
 		if(file.exists()){
 			config = new C3P0PropertiesConfig(file);
 			dataSource = config.getDataSource();
-			dataSourceSecond = config.getDataSourceSecond();
+			dataSourceSecond = config.getDataSource();
 		}else{
 			config = new C3P0PropertiesConfig(dbPath);
 			dataSource = config.getDataSource();
-			dataSourceSecond = config.getDataSourceSecond();
+			dataSourceSecond = config.getDataSource();
 		}
 		jdbcOperate = new JdbcOperate(dataSource);
 		jdbcOperateSecond = new JdbcOperate(dataSourceSecond);

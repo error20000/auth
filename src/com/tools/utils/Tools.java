@@ -33,6 +33,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -66,6 +67,8 @@ public class Tools {
 	public static Map<String, String> phoneVcode = new ConcurrentHashMap<>(); //vcode
 	public static Map<String, Integer> phoneVcodeLimit = new ConcurrentHashMap<>(); //vcode
 	
+	public static Map<String, AccessToken> tokenMap = new ConcurrentHashMap<String, AccessToken>();
+	
 	//反射
 	private static Map<String, Field> fields = new HashMap<String ,Field>();
 	private static Map<String, Method> methods = new HashMap<String ,Method>();
@@ -88,6 +91,18 @@ public class Tools {
 	//可配置信息
 	public static void initTips() {
 		
+	}
+	
+	public static void initSaveToken(AccessToken token) {
+		tokenMap.put(token.getKey(), token);
+	}
+
+	public static AccessToken initGetToken(String key) {
+		return tokenMap.get(key);
+	}
+
+	public static AccessToken initClearToken(String key) {
+		return tokenMap.remove(key);
 	}
 	
 	public static String getAuthUser() {
@@ -446,6 +461,85 @@ public class Tools {
 			
 		}
 		return clss;
+	}
+	
+	/**
+	 * 获取配置文件
+	 * @param filename
+	 * @return
+	 */
+	public static Properties getProperties(String filename){
+		Properties properties = new Properties();
+		try {
+			properties.load(Tools.class.getResourceAsStream("/"+filename));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return properties;
+	}
+	
+	/**
+	 * 获取配置文件
+	 * @param file
+	 * @return
+	 */
+	public static Properties getProperties(File file){
+		Properties properties = new Properties();
+		try {
+			properties.load(new FileInputStream(file));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return properties;
+	}
+	
+	/**
+	 * 获取配置文件
+	 * @param in
+	 * @return
+	 */
+	public static Properties getProperties(InputStream in){
+		Properties properties = new Properties();
+		try {
+			properties.load(in);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return properties;
+	}
+	
+
+	public static String createToken(String key, Object value){
+		AccessToken token = new AccessToken(key, value);
+		token.setMillis(System.currentTimeMillis());
+		token.setToken(md5(key + token.getMillis())); //md5  key + millis
+		initSaveToken(token);
+		return token.getToken();
+	}
+	
+	public static AccessToken getToken(String key){
+		return initGetToken(key);
+	}
+	
+	public static boolean checkToken(String key, String token){
+		return checkToken(key, token, 2 * 3600 * 1000 );
+	}
+	
+	public static boolean checkToken(String key, String token, long overTime){
+		AccessToken tmp = getToken(key);
+		if(tmp == null){ 
+			return false;
+		}
+		long cur = System.currentTimeMillis();
+		if((tmp.getMillis() + overTime) < cur){
+			initClearToken(key);
+			return false;
+		}
+		return true;
+	}
+	
+	public static void clearToken(String key){
+		initClearToken(key);
 	}
 	
 	//TODO request相关
