@@ -103,7 +103,7 @@ text-align: left;
    			name = clzz.getSimpleName();
    		}
    %>
-   <td><a href="detail.json?type=<%=clzz.getName() %>"><%=name %></a></td>
+   <td><a href="detail.jsp?type=<%=clzz.getName() %>"><%=name %></a></td>
    <td><%=clzz.getName() %></td> 
    <td><%
    		String[] path = null;

@@ -1,3 +1,4 @@
+<%@page import="com.tools.utils.Tips"%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ page import="java.util.*" %>
 <%@ page import="com.tools.web.ServletContainerInitializerImpl" %>
@@ -77,7 +78,7 @@ text-align: left;
    %>
 <div>中文名称：<%=name %></div>
 <div>说明：<%=api.info() %></div>
-<a href='list.jsp' style='float: right;'>返回目录</a>
+<a href='index.jsp' style='float: right;'>返回目录</a>
 <%
 	if(api.entity().length > 0){
 		
@@ -87,6 +88,7 @@ text-align: left;
  <thead>
   <tr>
    <td style="width: 40px;">序号</td>
+   <td>中文名称</td>
    <td>英文名称</td>
    <td>数据类型</td>
    <td>长度</td>
@@ -114,16 +116,23 @@ text-align: left;
 			node.put("info", "");
 			if(f.isAnnotationPresent(Excel.class)){
 				Excel excel = f.getAnnotation(Excel.class);
-				node.put("name", excel.name()); 
+				String str = excel.name().replace("：", " ").replace(":", " ").replace("\t", " ").replace("\n", " ").split(" ")[0];
+				node.put("name", str); 
+				node.put("info", excel.name());
 			}
 			if(f.isAnnotationPresent(PrimaryKey.class)){
 				PrimaryKey pkey = f.getAnnotation(PrimaryKey.class);
 				node.put("isNull", "N");
 				node.put("autoInc", PrimaryKeyType.AUTO_INCREMENT.equals(pkey.type()) ? "Y" : "");
 			}
+			if(f.isAnnotationPresent(API.class)){
+				API fapi = f.getAnnotation(API.class);
+				//node.put("info", fapi.info());
+			}
 			%>
   <tr>
    <td style="text-align: center;"><%=j+1 %></td> 
+   <td><%=node.get("name") %></td>
    <td><%=node.get("field") %></td>
    <td align="center"><%=node.get("fieldType") %></td>
    <td align="center"><%=node.get("length") %></td>
@@ -131,7 +140,7 @@ text-align: left;
    <td align="center"><%=node.get("isPid") %></td>
    <td align="center"><%=node.get("defaults") %></td>
    <td><%=node.get("autoInc") %></td>
-   <td><p><%=node.get("name") %></p></td>
+   <td><p><%=node.get("info") %></p></td>
   </tr>
 			<%
 		}
@@ -142,13 +151,14 @@ text-align: left;
 		<%
 	}
 %>
+
 <div>Method说明：</div>
 <table cellspacing="1" cellpadding="0">
  <thead>
   <tr>
    <td style="width: 40px;">序号</td>
    <td>中文名称</td>
-   <td>URI</td>
+   <td>Method</td>
    <td>URL</td>
    <td>请求类型</td>
    <td>参数</td>
@@ -157,18 +167,94 @@ text-align: left;
   </tr>
  </thead> 
  <tbody>
- <c:forEach var="tmp" items="${data.method}" varStatus="self">
+<%
+	Method[] methods = clzz.getDeclaredMethods();
+	for(int j = 0; j < methods.length; j++){
+		Method m = methods[j];
+		if(m.isAnnotationPresent(API.class) && m.isAnnotationPresent(RequestMapping.class)){
+			API mapi = m.getAnnotation(API.class);
+			RequestMapping mreqMap = m.getAnnotation(RequestMapping.class);
+			
+			String mtmp = "";
+	   		if(!"".equals(mapi.name())){
+	   			mtmp = mapi.name();
+	   		}else if(!"".equals(mreqMap.name())){
+	   			mtmp = mreqMap.name();
+	   		}else{
+	   			mtmp = m.getName();
+	   		}
+			
+			Map<String, Object> node = new HashMap<String, Object>();
+			node.put("name", mtmp);
+			node.put("method", m.getName());
+			node.put("type", "");
+			node.put("request", "");
+			node.put("response", "");
+			node.put("info", mapi.info());
+		%>
   <tr>
-   <td style="text-align: center;">${self.count}</td> 
-   <td>${tmp.name }</td> 
-   <td>${tmp.method }</td>
-   <td><c:forEach var="puri" items="${data.parent.uri }"><c:forEach var="uri" items="${tmp.uri }"><p>${puri }${uri }</p></c:forEach></c:forEach></td>
-   <td align="center"><c:forEach var="post" items="${tmp.type }"><p>${post }</p></c:forEach></td>
-   <td><c:forEach var="req" items="${tmp.request }"><p>${req }</p></c:forEach></td>
-   <td><c:forEach var="res" items="${tmp.response }"><p>${res }</p></c:forEach></td>
-   <td><c:forEach var="info" items="${tmp.info }"><p>${info }</p></c:forEach></td>
+   <td style="text-align: center;"><%=j+1 %></td> 
+   <td><%=node.get("name") %></td> 
+   <td><%=node.get("method") %></td>
+   <td align="center"><%
+   		//api	path
+   		String[] path = null;
+		if(reqMap.path().length > 0){
+			path = reqMap.path();
+		}else {
+			path = reqMap.value();
+		}
+		//metnod	path
+		String[] mpath = null;
+		if(mreqMap.path().length > 0){
+			mpath = mreqMap.path();
+		}else {
+			mpath = mreqMap.value();
+		}
+   		for(String purl : path){
+   			for(String curl : mpath){
+   				%>
+   				<p><%=purl+curl %></p>
+   				<%
+   			}
+   		}
+   %></td>
+   <td><%
+   		RequestMethod[] types = mreqMap.method();
+   		if(types.length == 0){
+   			%>
+   			<p><%="ALL"%></p>
+   			<%
+   		}else{
+   			for(RequestMethod rm : types){
+   				%>
+   				<p><%=rm %></p>
+   				<%
+   			}
+   		}
+   %></td>
+   <td><%
+  		 ParamsInfo[] reqInfos = mapi.request();
+  		for(ParamsInfo tmp : reqInfos){
+  			%>
+  			<p><%=tmp.name()+": "+ tmp.info()%></p>
+  			<%
+  		} 
+   %></td>
+   <td><%
+  		 ParamsInfo[] respInfos = mapi.response();
+  		for(ParamsInfo tmp : respInfos){
+  			%>
+  			<p><%=tmp.name()+": "+ tmp.info()%></p>
+  			<%
+  		} 
+   %></td>
+   <td><p><%=node.get("info") %></p></td>
   </tr>
-  </c:forEach>
+		<%
+		}
+	}
+%>
  </tbody>
 </table>
 <div>返回码说明：</div>
@@ -182,93 +268,23 @@ text-align: left;
   </tr>
  </thead> 
  <tbody>
+ <%
+ 	for (int j = 0; j < Tips.values().length; j++)  {
+ 		Tips tip = Tips.values()[j];
+ 		%>
   <tr>
-   <td style="text-align: center;">1</td> 
-   <td>大于0</td> 
-   <td>成功</td>
+   <td style="text-align: center;"><%=j+1 %></td> 
+   <td><%=tip.getCode() %></td> 
+   <td><%=tip.getDescOriginal() %></td>
    <td></td>
   </tr>
-  <tr>
-   <td style="text-align: center;">2</td> 
-   <td>0</td> 
-   <td>失败</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">3</td> 
-   <td>-1</td> 
-   <td>失败</td>
-   <td>未登录等</td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">4</td> 
-   <td>-2</td> 
-   <td>无效</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">5</td> 
-   <td>-3</td> 
-   <td>没有权限</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">6</td> 
-   <td>-4</td> 
-   <td>效验失败</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">7</td> 
-   <td>-5</td> 
-   <td>不在活动时间段</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">8</td> 
-   <td>-6</td> 
-   <td>已参加过该活动</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">9</td> 
-   <td>-7</td> 
-   <td>次数已用完</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">10</td> 
-   <td>-8</td> 
-   <td>图形验证码错误</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">11</td> 
-   <td>-9</td> 
-   <td>短信验证码错误</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">12</td> 
-   <td>-10</td> 
-   <td>系统错误</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">13</td> 
-   <td>-11</td> 
-   <td>需提供图形验证码</td>
-   <td></td>
-  </tr>
-  <tr>
-   <td style="text-align: center;">14</td> 
-   <td>-12</td> 
-   <td>已发送，稍后再试</td>
-   <td></td>
-  </tr>
+ 		
+ 		<%
+ 	}
+ %>
  </tbody>
 </table>
-<c:if test="${data.interfaces != null}">
+<%-- <c:if test="${data.interfaces != null}">
 	<div>现有接口说明：</div>
 	<table cellspacing="1" cellpadding="0">
 	 <thead>
@@ -294,7 +310,7 @@ text-align: left;
 	  </c:forEach>
 	 </tbody>
 	</table>
-</c:if>
+</c:if> --%>
 </div>
 </center>
 		

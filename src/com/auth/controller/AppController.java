@@ -23,9 +23,10 @@ import com.tools.utils.Tools;
 import com.tools.web.AllowReq;
 import com.tools.web.annotation.Controller;
 import com.tools.web.annotation.RequestMapping;
+import com.tools.web.annotation.RequestMethod;
 
 @Controller
-@RequestMapping(name="AppController", path={"/app"})
+@RequestMapping(name="AppController", path={"/app","/app2"})
 @API(info="app 测试", entity = App.class)
 public class AppController{
 	
@@ -110,8 +111,8 @@ public class AppController{
 	}
 	
 	
-	@RequestMapping(name="save", path={"/add"})
-	@API(info="app add", request={@ParamsInfo(name="id",info="主键"), @ParamsInfo(name="name",info="名称")})
+	@RequestMapping(name="save", path={"/add","/add2"}, method={RequestMethod.GET, RequestMethod.POST})
+	@API(name="新增" ,info="app add", request={@ParamsInfo(name="id",info="主键"), @ParamsInfo(name="name",info="名称")})
 	public String save(HttpServletRequest req, HttpServletResponse resp){
 		//验证
 		Map<String, Object> vMap = verifySave(req);

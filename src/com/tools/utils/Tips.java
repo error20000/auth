@@ -88,4 +88,8 @@ public enum Tips {
 		return desc.replace("{param}", param);
 	}
 	
+	public String getDescOriginal() {
+		return desc;
+	}
+	
 }

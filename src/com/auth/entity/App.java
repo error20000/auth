@@ -1,6 +1,7 @@
 package com.auth.entity;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tools.annotation.Excel;
 import com.tools.jdbc.PrimaryKey;
 import com.tools.jdbc.Table;
 
@@ -9,6 +10,7 @@ public class App {
 	
 	@PrimaryKey
 	private String pid;
+	@Excel(name="名称", sort = 1)
 	private String name;
 	private String marks;
 	private String secretKey;
