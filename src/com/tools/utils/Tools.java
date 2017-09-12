@@ -962,8 +962,8 @@ public class Tools {
 	 * @param result	输出字符串
 	 * @param cos	是否跨域
 	 */
-	public static void output(HttpServletResponse resp, String result, boolean cos) {
-		output(null, resp, result, cos);
+	public static void output(HttpServletRequest req, HttpServletResponse resp, String result) {
+		output(req, resp, result, false);
 	}
 	
 	/**
@@ -982,7 +982,12 @@ public class Tools {
 				resp.setHeader("Access-Control-Allow-Origin", "*");
 				resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
 				resp.setHeader("Access-Control-Max-Age", "36000");
-				resp.setHeader("Access-Control-Allow-Headers", "x-requested-with");
+				String header = req.getHeader("Access-Control-Request-Headers");
+				if(isNullOrEmpty(header)){
+					resp.setHeader("Access-Control-Allow-Headers", "x-requested-with");
+				}else{
+					resp.setHeader("Access-Control-Allow-Headers", "x-requested-with,"+header);
+				}
 			}
 			PrintWriter writer = resp.getWriter();
 			writer.print(result);

@@ -11,13 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-public @interface API {
-	public String id() default "";
+public @interface ParamsInfo {
 	public String name() default "";
-	public String uri() default "";
-	public ParamsInfo[] request() default {};
-	public ParamsInfo[] response() default {};
 	public String info() default "";
-	public Class<?>[] entity() default {};
-	public Class<?>[] route() default {};
 }

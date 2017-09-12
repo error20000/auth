@@ -77,7 +77,7 @@ public class TempController{
 	private Map<String, Object> verifyFind(HttpServletRequest req){
 		//TODO 需要自己修改验证
 		
-		return null;
+		return verifyLogin(req);
 	}
 	
 	

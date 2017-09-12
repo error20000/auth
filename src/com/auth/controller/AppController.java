@@ -15,6 +15,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.auth.entity.App;
 import com.auth.service.AppService;
 import com.auth.service.impl.AppServiceImpl;
+import com.tools.annotation.API;
+import com.tools.annotation.ParamsInfo;
 import com.tools.utils.ResultKey;
 import com.tools.utils.Tips;
 import com.tools.utils.Tools;
@@ -24,6 +26,7 @@ import com.tools.web.annotation.RequestMapping;
 
 @Controller
 @RequestMapping(name="AppController", path={"/app"})
+@API(info="app 测试", entity = App.class)
 public class AppController{
 	
 	private AppService service = new AppServiceImpl();
@@ -108,6 +111,7 @@ public class AppController{
 	
 	
 	@RequestMapping(name="save", path={"/add"})
+	@API(info="app add", request={@ParamsInfo(name="id",info="主键"), @ParamsInfo(name="name",info="名称")})
 	public String save(HttpServletRequest req, HttpServletResponse resp){
 		//验证
 		Map<String, Object> vMap = verifySave(req);

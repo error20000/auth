@@ -153,7 +153,7 @@ public class RequstServlet extends HttpServlet {
 						res = mappingData.getMethod().invoke(mappingData.getClss().newInstance(), params);
 					}
 					if(res != null){
-						Tools.output(resp, (String) res);
+						Tools.output(req, resp, (String) res, true);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -197,7 +197,6 @@ public class RequstServlet extends HttpServlet {
 		}
 		return method;
 	}
-	
 	
 	@Override
 	public void destroy() {
