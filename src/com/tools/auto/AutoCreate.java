@@ -151,7 +151,7 @@ public class AutoCreate {
 		System.out.println("解析数据库...");
 		List<Table> list = manager.getDbInfo();
 		for (Table table : list) {
-			String ename = table.getTableName().replace(prefix, "");
+			String ename = table.getTableName().replaceFirst(prefix, "");
 			ename = ename.substring(0, 1).toUpperCase() + ename.substring(1);
 			if(!Tools.isNullOrEmpty(separator)){
 				int index = 0;
@@ -175,7 +175,7 @@ public class AutoCreate {
 		//解析数据表
 		System.out.println("解析数据表...");
 		Table table = manager.getDbTable(tableName);
-		String ename = table.getTableName().replace(prefix, "");
+		String ename = table.getTableName().replaceFirst(prefix, "");
 		ename = ename.substring(0, 1).toUpperCase() + ename.substring(1);
 		if(!Tools.isNullOrEmpty(separator)){
 			int index = 0;

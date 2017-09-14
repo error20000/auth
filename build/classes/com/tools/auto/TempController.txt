@@ -119,7 +119,7 @@ public class TempController{
 	
 	@RequestMapping(name="modify", path={"/modify"})
 	@API(name="修改", 
-		info="", 
+		info="建议根据主键修改。", 
 		request={@ParamsInfo(name="参数", info="Entity各个字段")}, 
 		response={@ParamsInfo(name=ResultKey.CODE, info="返回码"),@ParamsInfo(name=ResultKey.MSG, info="描述"),@ParamsInfo(name=ResultKey.DATA, info="数据")})
 	public String modify(HttpServletRequest req, HttpServletResponse resp){
@@ -144,7 +144,7 @@ public class TempController{
 	
 	@RequestMapping(name="delete", path={"/delete"})
 	@API(name="删除", 
-		info="", 
+		info="建议根据主键删除。", 
 		request={@ParamsInfo(name="参数", info="Entity各个字段")}, 
 		response={@ParamsInfo(name=ResultKey.CODE, info="返回码"),@ParamsInfo(name=ResultKey.MSG, info="描述"),@ParamsInfo(name=ResultKey.DATA, info="数据")})
 	public String delete(HttpServletRequest req, HttpServletResponse resp){
@@ -169,14 +169,14 @@ public class TempController{
 	
 	@RequestMapping(name="query", path={"/query"})
 	@API(name="分页查询", 
-		info="", 
-		request={@ParamsInfo(name="page", info="页码（必填）"),@ParamsInfo(name="rows", info="每页条数（必填）"),@ParamsInfo(name="keywords", info="关键字查询")}, 
+		info="rows：1 - 9999", 
+		request={@ParamsInfo(name="page", info="页码（必填）"),@ParamsInfo(name="rows", info="每页条数（必填）"),@ParamsInfo(name="keywords", info="关键字查询（未使用）")}, 
 		response={@ParamsInfo(name=ResultKey.CODE, info="返回码"),@ParamsInfo(name=ResultKey.MSG, info="描述"),@ParamsInfo(name=ResultKey.DATA, info="数据"),@ParamsInfo(name=ResultKey.TOTAL, info="总条数")})
 	public String query(HttpServletRequest req, HttpServletResponse resp){
 
 		String page = Tools.getReqParamSafe(req, "page");
 		String rows = Tools.getReqParamSafe(req, "rows");
-		String keywords = Tools.getReqParamSafe(req, "keywords");
+//		String keywords = Tools.getReqParamSafe(req, "keywords");
 		//验证
 		Map<String, Object> vMap = verifyQuery(req);
 		if(vMap != null){
@@ -186,7 +186,7 @@ public class TempController{
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
-		vMap = Tools.verifyParam("rows", Tools.getReqParam(req, "rows"), 1, 4, true); // 0 - 9999
+		vMap = Tools.verifyParam("rows", Tools.getReqParam(req, "rows"), 1, 4, true); // 1 - 9999
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
@@ -197,7 +197,7 @@ public class TempController{
 		condition.remove("page");
 		condition.remove("rows");
 		condition.remove("keywords");
-		//TODO 需要自己修改关键字查询
+		//TODO 需要自己修改关键字查询（默认未使用）
 		
 		int start = "0".equals(page) ? 0 : (Tools.parseInt(page) - 1 ) * Tools.parseInt(rows);
 		List<Temp> res = service.findList(condition, start, Tools.parseInt(rows));
@@ -211,7 +211,7 @@ public class TempController{
 	
 	@RequestMapping(name="list", path={"/list"})
 	@API(name="查询所有", 
-		info="", 
+		info="数据多时，建议使用find。", 
 		request={}, 
 		response={@ParamsInfo(name=ResultKey.CODE, info="返回码"),@ParamsInfo(name=ResultKey.MSG, info="描述"),@ParamsInfo(name=ResultKey.DATA, info="数据")})
 	public String list(HttpServletRequest req, HttpServletResponse resp){

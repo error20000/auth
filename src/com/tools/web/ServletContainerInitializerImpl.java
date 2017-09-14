@@ -121,7 +121,7 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 					data = JSONObject.parseObject(JSON.toJSONString(parentData), RequestMappingData.class);
 				}
 				data.setName(data.getName()+"#"+name);
-				//value
+				/*//value
 				if(data.getValue().length != 0){
 					List<String> valueTmp = new ArrayList<String>();
 					for (int i = 0; i < data.getValue().length; i++) {
@@ -145,7 +145,17 @@ public class ServletContainerInitializerImpl implements ServletContainerInitiali
 					data.setPath(pathTmp.toArray(new String[pathTmp.size()]));
 				}else{
 					data.setPath(path);
+				}*/
+				//path
+				String[] pranetPath = data.getPath().length > 0 ? data.getPath() : data.getValue();
+				String[] slefPath = path.length > 0 ? path : value;
+				List<String> pathTmp = new ArrayList<String>();
+				for (int i = 0; i < pranetPath.length; i++) {
+					for (int j = 0; j < slefPath.length; j++) {
+						pathTmp.add(pranetPath[i] + slefPath[j]);
+					}
 				}
+				data.setPath(pathTmp.toArray(new String[pathTmp.size()]));
 				
 				//method
 				if(data.getReqMethod().length != 0){ //类
