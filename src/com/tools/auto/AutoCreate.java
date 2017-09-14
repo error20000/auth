@@ -362,7 +362,7 @@ public class AutoCreate {
 								}
 							}else if("//field".equals(content.get(i).trim())){
 								content.add(i+1, "	@PrimaryKey(type=PrimaryKeyType.AUTO_INCREMENT)");
-								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
+								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+ (Tools.isNullOrEmpty(structure.getDefaultValue()) ? "" : ", value=\""+structure.getDefaultValue()+"\"") +" )");
 								content.add(i+3, "	private "+structure.getType()+" "+structure.getField()+";");
 							}
 						}
@@ -375,7 +375,7 @@ public class AutoCreate {
 								}
 							}else if("//field".equals(content.get(i).trim())){
 								content.add(i+1, "	@PrimaryKey");
-								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
+								content.add(i+2, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+ (Tools.isNullOrEmpty(structure.getDefaultValue()) ? "" : ", value=\""+structure.getDefaultValue()+"\"") +" )");
 								content.add(i+3, "	private "+structure.getType()+" "+structure.getField()+";");
 							}
 						}
@@ -383,7 +383,7 @@ public class AutoCreate {
 				}else{
 					for (int i = 0; i < content.size(); i++) {
 						if("//field".equals(content.get(i).trim())){
-							content.add(i+1, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+")");
+							content.add(i+1, "	@Excel(name=\""+structure.getComment().replace("\"", "")+"\", sort="+m+ (Tools.isNullOrEmpty(structure.getDefaultValue()) ? "" : ", value=\""+structure.getDefaultValue()+"\"") +" )");
 							content.add(i+2, "	private "+structure.getType()+" "+structure.getField()+";");
 						}
 					}

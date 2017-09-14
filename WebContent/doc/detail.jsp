@@ -119,6 +119,7 @@ text-align: left;
 				String str = excel.name().replace("：", " ").replace(":", " ").replace("\t", " ").replace("\n", " ").split(" ")[0];
 				node.put("name", str); 
 				node.put("info", excel.name());
+				node.put("defaults", excel.value());
 			}
 			if(f.isAnnotationPresent(PrimaryKey.class)){
 				PrimaryKey pkey = f.getAnnotation(PrimaryKey.class);
@@ -127,7 +128,7 @@ text-align: left;
 			}
 			if(f.isAnnotationPresent(API.class)){
 				API fapi = f.getAnnotation(API.class);
-				//node.put("info", fapi.info());
+				node.put("info", fapi.info());
 			}
 			%>
   <tr>
@@ -161,14 +162,14 @@ text-align: left;
    <td>Method</td>
    <td>URL</td>
    <td>请求类型</td>
-   <td>参数</td>
-   <td>返回值</td>
+   <td>Request</td>
+   <td>Response</td>
    <td>说明</td>
   </tr>
  </thead> 
  <tbody>
 <%
-	Method[] methods = clzz.getDeclaredMethods();
+	Method[] methods = clzz.getMethods();
 	for(int j = 0; j < methods.length; j++){
 		Method m = methods[j];
 		if(m.isAnnotationPresent(API.class) && m.isAnnotationPresent(RequestMapping.class)){
@@ -237,7 +238,7 @@ text-align: left;
   		 ParamsInfo[] reqInfos = mapi.request();
   		for(ParamsInfo tmp : reqInfos){
   			%>
-  			<p><%=tmp.name()+": "+ tmp.info()%></p>
+  			<p><%=tmp.name()+": "+ tmp.info().replace("（必填）", "<font color=\"red\">（必填）</font>")%></p>
   			<%
   		} 
    %></td>

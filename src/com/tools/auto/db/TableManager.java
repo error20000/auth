@@ -90,7 +90,7 @@ public class TableManager {
 				structure.setType(getType((node.get("Type")+"").split("[(]")[0]));
 				structure.setIsNull(node.get("Null")+"");
 				structure.setKey(node.get("Key")+"");
-				structure.setDefaultValue(node.get("Default")+"");
+				structure.setDefaultValue(node.get("Default")== null ? "" : node.get("Default")+"");
 				structure.setExtra(node.get("Extra")+"");
 				structure.setComment(node.get("Comment")+"");
 				structures.add(structure);

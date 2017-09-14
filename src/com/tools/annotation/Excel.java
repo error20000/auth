@@ -14,4 +14,6 @@ public @interface Excel {
 	public String name() default "";
 	
 	public int sort() default 0;
+	
+	public String value() default "";
 }

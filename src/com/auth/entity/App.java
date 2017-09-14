@@ -10,8 +10,9 @@ public class App {
 	
 	@PrimaryKey
 	private String pid;
-	@Excel(name="名称", sort = 1)
+	@Excel(name="名称", sort = 1, value="测试")
 	private String name;
+	@Excel(name="名称", sort = 1)
 	private String marks;
 	private String secretKey;
 	private int status;
