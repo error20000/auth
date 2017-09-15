@@ -4,6 +4,8 @@ import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +125,10 @@ public class APIController{
 					hash.put(mappingData.getClss().getName(), "1");
 				}
 			}
+			
+			Collections.sort(mapping, (RequestMappingData a, RequestMappingData b) -> {
+			    return a.getClss().getSimpleName().compareTo(b.getClss().getSimpleName());
+			});
 			
 			for(int i = 0; i < mapping.size(); i++){
 				RequestMappingData mappingData = mapping.get(i);
@@ -413,6 +419,11 @@ public class APIController{
 		      out.write(" <tbody>\r\n");
 
 			Method[] methods = clzz.getMethods();
+			
+			Arrays.sort(methods, (Method a, Method b) -> {
+			    return a.getName().compareTo(b.getName());
+			});
+			
 			for(int j = 0; j < methods.length; j++){
 				Method m = methods[j];
 				if(m.isAnnotationPresent(API.class) && m.isAnnotationPresent(RequestMapping.class)){
