@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class LogsTool {
+public class LogsTools {
 
 	private static ExecutorService service = Executors.newFixedThreadPool(20);
 	private static Object lock = new Object();
@@ -19,7 +19,7 @@ public class LogsTool {
 	 * @param close true 关闭日志记录，false 打开日志记录。默认：false.
 	 */
 	public static void close(boolean close) {
-		LogsTool.close = close;
+		LogsTools.close = close;
 	}
 	
 	/**
