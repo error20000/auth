@@ -554,7 +554,7 @@ public class Tools {
 		if (isNullOrEmpty(value)) {
 			Object tmp = req.getAttribute(key);
 			if(!isNullOrEmpty(tmp)){
-				value = String.valueOf(value);
+				value = String.valueOf(tmp);
 			}
 		}
 		return isNullOrEmpty(value) ? null : value.trim();
@@ -571,7 +571,7 @@ public class Tools {
 		if (isNullOrEmpty(value)) {
 			Object tmp = req.getAttribute(key);
 			if(!isNullOrEmpty(tmp)){
-				value = String.valueOf(value);
+				value = String.valueOf(tmp);
 			}
 		}
 		if(!isNullOrEmpty(value) && isAttack(value)){
@@ -719,7 +719,7 @@ public class Tools {
 	public static Map<String, Object> getReqParamsToMap(HttpServletRequest req){
 		Map<String, Object> obj = new HashMap<String, Object>();
 		Enumeration<String> enums = req.getParameterNames();
-		if(enums == null){
+		if(enums == null || !enums.hasMoreElements()){
 			enums = req.getAttributeNames();
 		}
 		while (enums.hasMoreElements()) {
@@ -751,7 +751,7 @@ public class Tools {
 	public static Map<String, Object> getReqParamsToMap(HttpServletRequest req, String params) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		Enumeration<String> enums = req.getParameterNames();
-		if(enums == null){
+		if(enums == null || !enums.hasMoreElements()){
 			enums = req.getAttributeNames();
 		}
 		while(enums.hasMoreElements()){
@@ -786,7 +786,7 @@ public class Tools {
 	public static Map<String, Object> getReqParamsToMap(HttpServletRequest req, Class<?> clss){
 		Map<String, Object> obj = new HashMap<String, Object>();
 		Enumeration<String> enums = req.getParameterNames();
-		if(enums == null){
+		if(enums == null || !enums.hasMoreElements()){
 			enums = req.getAttributeNames();
 		}
 		while (enums.hasMoreElements()) {
@@ -855,7 +855,7 @@ public class Tools {
 				}
 			}
 			Enumeration<String> enums = req.getParameterNames();
-			if(enums == null){
+			if(enums == null || !enums.hasMoreElements()){
 				enums = req.getAttributeNames();
 			}
 			while (enums.hasMoreElements()) {
