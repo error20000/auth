@@ -3,9 +3,12 @@ package com.tools.utils;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class CacheTools {
@@ -13,6 +16,9 @@ public class CacheTools {
 	private static Map<String, CacheObject> objMap = new ConcurrentHashMap<String, CacheObject>();
 	private static ReentrantLock lock = new ReentrantLock(); 
 	private static boolean timerStart = false; 
+	private static AtomicInteger count = new AtomicInteger(1);
+	
+	private static SortedMap<String, CacheObject> sortMap = new TreeMap<String, CacheObject>();
 	
 	static{
 		autoClear(2);
@@ -68,6 +74,12 @@ public class CacheTools {
 	
 	public static void setCacheObj(String key, Object value){
 		CacheObject obj = new CacheObject(key, value);
+		long cur = System.currentTimeMillis();
+		System.out.println("cur: "+cur);
+		System.out.println("count: "+count.getAndAdd(1));
+		count.compareAndSet(1000, 1);
+		obj.setMillis(cur);
+		String sortKey = cur +"";
 		initSetCacheObj(obj);
 	}
 	
@@ -99,12 +111,24 @@ public class CacheTools {
 	
 	
 	public static void main(String[] args) {
-		CacheTools.setCacheObj("1", "2");
+		/*CacheTools.setCacheObj("1", "2");
 		try {
 			Thread.sleep(10 * 3600 * 1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}*/
+		
+		for (int i = 0; i < 2000; i++) {
+			int count = i;
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					setCacheObj("key_"+count, "value_"+count);
+				}
+			}).start();
 		}
+		
 	}
 }

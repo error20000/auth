@@ -182,11 +182,11 @@ public class TempController{
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
-		vMap = Tools.verifyParam("page", Tools.getReqParam(req, "page"), 1, 0, true);
+		vMap = Tools.verifyParam("page", page, 1, 0, true);
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
-		vMap = Tools.verifyParam("rows", Tools.getReqParam(req, "rows"), 1, 4, true); // 1 - 9999
+		vMap = Tools.verifyParam("rows", rows, 1, 5, true); // 1 - 99999
 		if(vMap != null){
 			return JSONObject.toJSONString(vMap);
 		}
