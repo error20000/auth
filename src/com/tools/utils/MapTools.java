@@ -17,20 +17,31 @@ public class MapTools {
 
         Builder() {
             super();
-            this.map =  new HashMap<>();
+            this.map =  new HashMap<String, Object>();
         }
         
-        public Builder set(String key, Object value){
+        public Builder put(String key, Object value){
     		this.map.put(key, value);
             return this;
         }
+        
+        public Builder remove(String key){
+    		this.map.remove(key);
+            return this;
+        }
+        
+        public Builder clear(){
+    		this.map.clear();
+            return this;
+        }
+        
         public Map<String, Object> build() {
         	return this.map;
         }
 	}
 	
 	public static void main(String[] args) {
-		Map<String, Object> map = MapTools.custom().set("test1", "test1").set("test2", "test2").set("test3", "test3").set("test1", "test4").build();
+		Map<String, Object> map = MapTools.custom().put("test1", "test1").put("test2", "test2").put("test3", "test3").put("test1", "test4").build();
 		Map<String, Object> map2 = MapTools.custom().build();
 		MapTools.DEFAULT.put("2", "3");
 		Map<String, Object> map3 = MapTools.DEFAULT;

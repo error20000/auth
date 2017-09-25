@@ -17,11 +17,13 @@ public class CacheTools {
 	private static ReentrantLock lock = new ReentrantLock(); 
 	private static boolean timerStart = false; 
 	private static AtomicInteger count = new AtomicInteger(1);
+	private static int runTime = 2 * 3600; //定时清理时间。单位（秒）
+	private static long outTime = 2 * 3600 * 1000; //资源超时时间。单位（毫秒）
 	
-	private static SortedMap<String, CacheObject> sortMap = new TreeMap<String, CacheObject>();
+	private static SortedMap<String, String> sortMap = new TreeMap<String, String>();
 	
 	static{
-		autoClear(2);
+		autoClear();
 	}
 	
 	public static void initSetCacheObj(CacheObject obj) {
@@ -36,7 +38,7 @@ public class CacheTools {
 		return objMap.remove(key);
 	}
 
-	public static void initAutoClear(long outTime) {
+	/*public static void initAutoClear() {
 		System.out.println("defult clear...");
 		long cur = System.currentTimeMillis();
 		Set<String> keys = objMap.keySet();
@@ -44,13 +46,26 @@ public class CacheTools {
 		while (it.hasNext()) {
 			String key = it.next();
 			CacheObject obj = objMap.get(key);
-			if((obj.getMillis() + outTime) < cur){
+			if((obj.getMillis() + outTime) < cur){ //超时清理
 				objMap.remove(key);
 			}
 		}
+	}*/
+	
+	public static void initAutoClear() {
+		System.out.println("defult new clear...");
+		long cur = System.currentTimeMillis();
+		String toKey = (cur - outTime) + "" + 1000;
+		SortedMap<String, String> clearMap = sortMap.headMap(toKey);
+		Set<String> keys = clearMap.keySet();
+		Iterator<String> it = keys.iterator();
+		while (it.hasNext()) {
+			String sortKey = it.next();
+			objMap.remove(clearMap.get(sortKey));
+		}
 	}
 	
-	public static void autoClear(int runTime) {
+	public static void autoClear() {
 		if(!timerStart){
 			System.out.println("start cache clear...");
 			runTime = runTime <= 0 ? 2 * 3600 * 1000 : runTime * 1000;
@@ -60,7 +75,7 @@ public class CacheTools {
 				@Override
 				public void run() {
 					lock.lock();
-					initAutoClear(2 * 3600 * 1000);
+					initAutoClear();
 					lock.unlock();
 				}
 			}, 0, runTime);
@@ -75,11 +90,12 @@ public class CacheTools {
 	public static void setCacheObj(String key, Object value){
 		CacheObject obj = new CacheObject(key, value);
 		long cur = System.currentTimeMillis();
-		System.out.println("cur: "+cur);
-		System.out.println("count: "+count.getAndAdd(1));
+		int index = count.getAndAdd(1);
 		count.compareAndSet(1000, 1);
 		obj.setMillis(cur);
-		String sortKey = cur +"";
+		//排序key
+		String sortKey = cur +""+(index < 10 ? "000"+index : index < 100 ? "00"+index : index < 1000 ? "0"+index : index);
+		sortMap.put(sortKey, key);
 		initSetCacheObj(obj);
 	}
 	
