@@ -982,7 +982,7 @@ public class Tools {
 				resp.setHeader("Access-Control-Allow-Origin", "*");
 				resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT, HEAD");//返回所有支持的方法，避免多次"预检"请求
 				resp.setHeader("Access-Control-Max-Age", "36000");//本次预检请求的有效期，单位为秒
-				resp.setHeader("Access-Control-Allow-Credentials", "true"); //请求允许cookie，需配合Origin使用（Origin不能配置为*）
+				resp.setHeader("Access-Control-Allow-Credentials", "true"); //请求允许cookie，需配合Origin使用（Origin不能配置为*），并且ajax也要withCredentials为true
 				
 				String header = req.getHeader("Access-Control-Request-Headers");
 				if(isNullOrEmpty(header)){
