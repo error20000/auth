@@ -15,9 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
 
-import com.auth.entity.Language;
-import com.auth.service.LanguageService;
-import com.auth.service.impl.LanguageServiceImpl;
+import com.auth.entity.App;
+import com.auth.service.AppService;
+import com.auth.service.impl.AppServiceImpl;
 import com.auth.config.CtrlConfig;
 import com.auth.config.VerifyConfig;
 
@@ -32,16 +32,16 @@ import com.tools.web.annotation.Controller;
 import com.tools.web.annotation.RequestMapping;
 
 /**
- * com.tools.auto 自动生成  LanguageController
+ * com.tools.auto 自动生成  AppController
  * @author liujian
  *
  */
 @Controller
-@RequestMapping(name="LanguageController", path={"/api/language"})
-@API(info="", entity={Language.class})
-public class LanguageController{
+@RequestMapping(name="AppController", path={"/api/app"})
+@API(info="", entity={App.class})
+public class AppController{
 	
-	private LanguageService service = new LanguageServiceImpl();
+	private AppService service = new AppServiceImpl();
 	
 	//登录验证（私有）
 	private Map<String, Object> verifyLogin(HttpServletRequest req){
@@ -59,7 +59,7 @@ public class LanguageController{
 	
 	//保存验证
 	private Map<String, Object> verifySave(HttpServletRequest req){
-		Map<String, Object> vMap = VerifyConfig.verifySave(req, Language.class);
+		Map<String, Object> vMap = VerifyConfig.verifySave(req, App.class);
 		if(vMap != null){
 			return vMap;
 		}
@@ -75,7 +75,7 @@ public class LanguageController{
 	
 	//修改验证
 	private Map<String, Object> verifyModify(HttpServletRequest req){
-		Map<String, Object> vMap = VerifyConfig.verifyModify(req, Language.class);
+		Map<String, Object> vMap = VerifyConfig.verifyModify(req, App.class);
 		if(vMap != null){
 			return vMap;
 		}
@@ -91,7 +91,7 @@ public class LanguageController{
 	
 	//删除验证
 	private Map<String, Object> verifyDelete(HttpServletRequest req){
-		Map<String, Object> vMap = VerifyConfig.verifyDelete(req, Language.class);
+		Map<String, Object> vMap = VerifyConfig.verifyDelete(req, App.class);
 		if(vMap != null){
 			return vMap;
 		}
@@ -108,7 +108,7 @@ public class LanguageController{
 	
 	//查询验证（query、list）
 	private Map<String, Object> verifyQuery(HttpServletRequest req){
-		Map<String, Object> vMap = VerifyConfig.verifyQuery(req, Language.class);
+		Map<String, Object> vMap = VerifyConfig.verifyQuery(req, App.class);
 		if(vMap != null){
 			return vMap;
 		}
@@ -124,7 +124,7 @@ public class LanguageController{
 	
 	//查询验证（find、findOne）
 	private Map<String, Object> verifyFind(HttpServletRequest req){
-		Map<String, Object> vMap = VerifyConfig.verifyFind(req, Language.class);
+		Map<String, Object> vMap = VerifyConfig.verifyFind(req, App.class);
 		if(vMap != null){
 			return vMap;
 		}
@@ -141,7 +141,7 @@ public class LanguageController{
 	
 	//excel验证（excel、excelHeader、excelFree）
 	private Map<String, Object> verifyExcel(HttpServletRequest req){
-		Map<String, Object> vMap = VerifyConfig.verifyExcel(req, Language.class);
+		Map<String, Object> vMap = VerifyConfig.verifyExcel(req, App.class);
 		if(vMap != null){
 			return vMap;
 		}
@@ -160,7 +160,7 @@ public class LanguageController{
 	
 	//TODO normal
 	
-	@RequestMapping(name="save", path={"/base/add"})
+	@RequestMapping(name="save", path={"/add"})
 	@API(name="新增", 
 		info="默认需登录。<br/>适用于管理后台。", 
 		request={@ParamsInfo(name="参数", info="Entity各个字段")}, 
@@ -173,7 +173,7 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		Language obj = Tools.getReqParamsToObject(req, new Language());
+		App obj = Tools.getReqParamsToObject(req, new App());
 		obj = Tools.fillDate(CtrlConfig.fillDateForAdd, obj);	//日期填充
 		int res = service.save(obj);
 		if(res > 0){
@@ -186,7 +186,7 @@ public class LanguageController{
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="modify", path={"/base/modify"})
+	@RequestMapping(name="modify", path={"/modify"})
 	@API(name="修改", 
 		info="默认需登录。<br/>根据主键修改。<br/>适用于管理后台。", 
 		request={@ParamsInfo(name="参数", info="Entity各个字段")}, 
@@ -200,12 +200,12 @@ public class LanguageController{
 		//执行
 		JSONObject json = new JSONObject();
 		//修改为不用传entity的全字段
-//		Language obj = Tools.getReqParamsToObject(req, new Language());
+//		App obj = Tools.getReqParamsToObject(req, new App());
 //		obj = Tools.fillDate(CtrlConfig.fillDateForModify, obj);
 //		int res = service.modify(obj);
 		
-		List<PrimaryKeyCondition> pkeys = Tools.getPrimaryKeys(Language.class);//获取主键
-		Map<String, Object> modifyValue = Tools.getReqParamsToMap(req, Language.class);//获取更新字段
+		List<PrimaryKeyCondition> pkeys = Tools.getPrimaryKeys(App.class);//获取主键
+		Map<String, Object> modifyValue = Tools.getReqParamsToMap(req, App.class);//获取更新字段
 		Map<String, Object> modifyCondition = new HashMap<String, Object>();//查询条件
 		for (PrimaryKeyCondition pkc : pkeys) {
 			String pkn = pkc.getField();
@@ -232,7 +232,7 @@ public class LanguageController{
 			json.put(ResultKey.MSG, Tips.ERROR206.getDesc("修改")); //缺少修改参数
 			return json.toJSONString();
 		}
-		Map<String, Object> dates = Tools.fillDate(CtrlConfig.fillDateForModify, Language.class); //日期填充
+		Map<String, Object> dates = Tools.fillDate(CtrlConfig.fillDateForModify, App.class); //日期填充
 		if(!dates.isEmpty()){
 			modifyValue.putAll(dates);
 		}
@@ -248,7 +248,7 @@ public class LanguageController{
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="delete", path={"/base/delete"})
+	@RequestMapping(name="delete", path={"/delete"})
 	@API(name="删除", 
 		info="默认需登录。<br/>根据主键删除。<br/>适用于管理后台。", 
 		request={@ParamsInfo(name="参数", info="Entity各个字段")}, 
@@ -261,7 +261,7 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		Map<String, Object> condition = Tools.getReqParamsToMap(req, Language.class);
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, App.class);
 		int res = service.delete(condition);
 		if(res > 0){
 			json.put(ResultKey.CODE, Tips.ERROR1.getCode());
@@ -273,7 +273,7 @@ public class LanguageController{
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="query", path={"/base/query"})
+	@RequestMapping(name="query", path={"/query"})
 	@API(name="分页查询", 
 		info="默认需登录。<br/>rows：1 - 9999。<br/>适用于管理后台，分页查询、搜索查询。", 
 		request={@ParamsInfo(name="page", info="页码（必填）"),@ParamsInfo(name="rows", info="每页条数（必填）"),@ParamsInfo(name="keywords", info="关键字查询（未使用）")}, 
@@ -298,11 +298,11 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		Map<String, Object> condition = Tools.getReqParamsToMap(req, Language.class);
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, App.class);
 		//TODO 需要自己修改关键字查询（默认未使用）
 		
 		int start = "0".equals(page) ? 0 : (Tools.parseInt(page) - 1 ) * Tools.parseInt(rows);
-		List<Language> res = service.findList(condition, start, Tools.parseInt(rows));
+		List<App> res = service.findList(condition, start, Tools.parseInt(rows));
 		long total = service.size(condition);
 		json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 		json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
@@ -311,7 +311,7 @@ public class LanguageController{
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="list", path={"/base/list"})
+	@RequestMapping(name="list", path={"/list"})
 	@API(name="查询所有", 
 		info="默认需登录。<br/>数据多时，建议使用条件查询。<br/>适用于管理后台，查询所有。", 
 		request={}, 
@@ -325,8 +325,8 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		Map<String, Object> condition = Tools.getReqParamsToMap(req, Language.class);
-		List<Language> res = service.findList(condition);
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, App.class);
+		List<App> res = service.findList(condition);
 		json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 		json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
 		json.put(ResultKey.DATA, res);
@@ -335,7 +335,7 @@ public class LanguageController{
 	
 	//TODO find
 	
-	@RequestMapping(name="find", path={"/base/find"})
+	@RequestMapping(name="find", path={"/find"})
 	@API(name="条件查询", 
 		info="适用于前端展示，根据Entity字段条件查询。", 
 		request={@ParamsInfo(name="参数", info="Entity各个字段")}, 
@@ -349,20 +349,20 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		Map<String, Object> condition = Tools.getReqParamsToMap(req, Language.class);
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, App.class);
 		if(condition == null || condition.isEmpty()){
 			json.put(ResultKey.CODE, Tips.ERROR206.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR206.getDesc(""));
 			return json.toJSONString();
 		}
-		List<Language> res = service.findList(condition);
+		List<App> res = service.findList(condition);
 		json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 		json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
 		json.put(ResultKey.DATA, res);
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="findOne", path={"/base/findOne"})
+	@RequestMapping(name="findOne", path={"/findOne"})
 	@API(name="查询一个", 
 		info="适用于前端展示，根据Entity字段条件查询一个。", 
 		request={@ParamsInfo(name="参数", info="Entity各个字段")}, 
@@ -376,20 +376,20 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		Map<String, Object> condition = Tools.getReqParamsToMap(req, Language.class);
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, App.class);
 		if(condition == null || condition.isEmpty()){
 			json.put(ResultKey.CODE, Tips.ERROR206.getCode());
 			json.put(ResultKey.MSG, Tips.ERROR206.getDesc(""));
 			return json.toJSONString();
 		}
-		Language res = service.findObject(condition);
+		App res = service.findObject(condition);
 		json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 		json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
 		json.put(ResultKey.DATA, res);
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="findPage", path={"/base/findPage"})
+	@RequestMapping(name="findPage", path={"/findPage"})
 	@API(name="分页条件查询", 
 		info="rows：1 - 9999。<br/>适用于前端展示，分页条件查询。", 
 		request={@ParamsInfo(name="page", info="页码（必填）"),@ParamsInfo(name="rows", info="每页条数（必填）"),@ParamsInfo(name="参数", info="Entity各个字段")}, 
@@ -413,10 +413,10 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		Map<String, Object> condition = Tools.getReqParamsToMap(req, Language.class);
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, App.class);
 		
 		int start = "0".equals(page) ? 0 : (Tools.parseInt(page) - 1 ) * Tools.parseInt(rows);
-		List<Language> res = service.findList(condition, start, Tools.parseInt(rows));
+		List<App> res = service.findList(condition, start, Tools.parseInt(rows));
 		long total = service.size(condition);
 		json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 		json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
@@ -425,7 +425,7 @@ public class LanguageController{
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="findAll", path={"/base/findAll"})
+	@RequestMapping(name="findAll", path={"/findAll"})
 	@API(name="查询所有", 
 		info="适用于前端展示。", 
 		request={}, 
@@ -439,7 +439,7 @@ public class LanguageController{
 		}
 		//执行
 		JSONObject json = new JSONObject();
-		List<Language> res = service.findList();
+		List<App> res = service.findList();
 		json.put(ResultKey.CODE, Tips.ERROR1.getCode());
 		json.put(ResultKey.MSG, Tips.ERROR1.getDesc());
 		json.put(ResultKey.DATA, res);
@@ -448,7 +448,7 @@ public class LanguageController{
 	
 	//TODO excel
 	
-	@RequestMapping(name="excel", path={"/base/excel"})
+	@RequestMapping(name="excel", path={"/excel"})
 	@API(name="导出所有", 
 		info="默认需登录。<br/>适用于管理后台，导出所有。", 
 		request={}, 
@@ -459,7 +459,7 @@ public class LanguageController{
 		excelFree(req, resp);
 	}
 	
-	@RequestMapping(name="excelHeader", path={"/base/excelHeader"})
+	@RequestMapping(name="excelHeader", path={"/excelHeader"})
 	@API(name="获取可导项", 
 		info="默认需登录。<br/>适用于管理后台，获取可导项。", 
 		request={}, 
@@ -472,7 +472,7 @@ public class LanguageController{
 			return JSONObject.toJSONString(vMap);
 		}
 		//执行
-		Language entity = new Language();
+		App entity = new App();
 		List<Map<String, Object>> excels = new ArrayList<Map<String, Object>>(); //获取导出字段
 		Field[] fields = Tools.getFields(entity.getClass());
 		for (Field f : fields) {
@@ -502,7 +502,7 @@ public class LanguageController{
 		return json.toJSONString();
 	}
 	
-	@RequestMapping(name="excelFree", path={"/base/excelFree"})
+	@RequestMapping(name="excelFree", path={"/excelFree"})
 	@API(name="根据可导项导出", 
 		info="默认需登录。<br/>适用于管理后台，根据可导项导出。", 
 		request={@ParamsInfo(name="fields", info="可导项，逗号分隔")}, 
@@ -517,9 +517,9 @@ public class LanguageController{
 		}
 		
 		//执行
-		Language entity = new Language();
-		Map<String, Object> condition = Tools.getReqParamsToMap(req, Language.class);
-		List<Language> res = service.findList(condition);
+		App entity = new App();
+		Map<String, Object> condition = Tools.getReqParamsToMap(req, App.class);
+		List<App> res = service.findList(condition);
 		String name = entity.getClass().getSimpleName().toLowerCase();
 		resp.addHeader("Content-Disposition","attachment;filename="+name+".csv");
 		// response.addHeader("Content-Length", "" + JSONArray.fromObject(list).toString().getBytes().length);
@@ -581,7 +581,7 @@ public class LanguageController{
 				}
 			}
 			//可导数据
-			for (Language node : res) { //遍历导出数据
+			for (App node : res) { //遍历导出数据
 				String str = "";
 				for (int j = 0; j < excels.size(); j++) { //遍历导出字段
 					String excelField = excels.get(j).get("field").toString();
